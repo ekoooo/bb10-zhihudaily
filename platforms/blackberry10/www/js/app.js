@@ -1,12 +1,13 @@
 var App = {
     initApp: function() {
-        bb.pushScreen('app.html', 'app');
-
+        bb.pushScreen('app.html', 'latest');
         this.attachEvent();
     },
     attachEvent: function() {
         $(document).on('bb_ondomready', function(e, paras) {
-            console.log(ZhihuDaily.getLatestNewsObj());
+            if(paras.id === 'latest') {
+                ZhihuDaily.initLatestPage();
+            }
         });
     }
 };
@@ -105,9 +106,7 @@ var ZhihuDaily = {
         return this.ajaxGet(this.getAPIURL(this.APIs.before, DateTools.getNextDateStr(date).replace(/-/g, '')));
     },
     getLatestNewsObj: function() {
-        var t = this.ajaxGet(this.APIs.latest);
-        console.log('bbbb', t);
-        return t;
+        return this.ajaxGet(this.APIs.latest);
     },
     getHotNewsObj: function() {
         return this.ajaxGet(this.APIs.hot);
@@ -132,15 +131,37 @@ var ZhihuDaily = {
             dataType: 'json',
             timeout: this.AJAX_GET_TIME_OUT,
             success: function(data) {
-                console.log('aaaaa', data)
                 rs = data;
             },
             error: function(xhr, type) {
                 console.log(xhr, type);
             }
         });
-        console.log('rs', rs)
         return rs;
+    },
+    initLatestPage: function() {
+        var storiesObj = this.getLatestNewsObj().stories;
+
+        var storiesDom = $('.stories');
+        var storiesListDom = $('<ul/>').addClass('stories_list');
+        var liTpl = '<li>' +
+            '   <a href="javascript: void(0);">' +
+            '       <div class="stories_desc"></div>' +
+            '       <div class="stories_ico"></div>' +
+            '   </a>' +
+            '</li>';
+        var item, tempLi;
+
+        for (var i = 0; i < storiesObj.length; i++) {
+            item = storiesObj[i];
+            tempLi = $(liTpl);
+            tempLi.find('a').attr('data-id', item.id);
+            tempLi.find('.stories_desc').text(item.title);
+            tempLi.find('.stories_ico').css({
+                background: 'url(' + item.images[0] + ')'
+            });
+            storiesListDom.append(tempLi);
+        }
+        storiesDom.append(storiesListDom);
     }
 }
-

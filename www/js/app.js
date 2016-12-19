@@ -1,12 +1,13 @@
 var App = {
     initApp: function() {
-        bb.pushScreen('app.html', 'app');
-
+        bb.pushScreen('app.html', 'latest');
         this.attachEvent();
     },
     attachEvent: function() {
         $(document).on('bb_ondomready', function(e, paras) {
-            console.log(ZhihuDaily.getLatestNewsObj());
+            if(paras.id === 'latest') {
+                ZhihuDaily.initLatestPage();
+            }
         });
     }
 };
@@ -137,22 +138,30 @@ var ZhihuDaily = {
             }
         });
         return rs;
+    },
+    initLatestPage: function() {
+        var storiesObj = this.getLatestNewsObj().stories;
+
+        var storiesDom = $('.stories');
+        var storiesListDom = $('<ul/>').addClass('stories_list');
+        var liTpl = '<li>' +
+            '   <a href="javascript: void(0);">' +
+            '       <div class="stories_desc"></div>' +
+            '       <div class="stories_ico"></div>' +
+            '   </a>' +
+            '</li>';
+        var item, tempLi;
+
+        for (var i = 0; i < storiesObj.length; i++) {
+            item = storiesObj[i];
+            tempLi = $(liTpl);
+            tempLi.find('a').attr('data-id', item.id);
+            tempLi.find('.stories_desc').text(item.title);
+            tempLi.find('.stories_ico').css({
+                background: 'url(' + item.images[0] + ')'
+            });
+            storiesListDom.append(tempLi);
+        }
+        storiesDom.append(storiesListDom);
     }
 }
-
-$.fn.topSlider = function(paras) {
-
-
-
-
-
-
-
-
-
-
-
-
-
-}
-

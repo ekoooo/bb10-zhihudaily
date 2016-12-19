@@ -113,3 +113,70 @@ h1 {
     animation:fade 3000ms infinite;
     -webkit-animation:fade 3000ms infinite;
 }
+
+
+
+
+
+.stories {
+    padding: 10px;
+}
+
+.stories_list {
+    display: flex;
+    flex-wrap: wrap;
+    flex-direction: row;
+    justify-content: space-around;
+}
+
+.stories_list li {
+    width: 100%;
+    width: 48%;
+    margin-top: 10px;
+}
+
+.stories_list li a {
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: row;
+    height: 240px;
+    padding: 20px;
+    border-radius: 5px;
+    background-color: #fff;
+    box-shadow: 1px 2px 7px 0 rgba(0,0,0,.5);
+}
+
+.stories_list li a:hover {
+    background-color: #F0F0F0;
+}
+
+.stories_desc {
+    height: 100%;
+    align-content: center;
+    flex: 1;
+    font-size: 45px;
+}
+
+.stories_ico {
+    width: 200px;
+    height: 100%;
+    background-size: 100% 100%;
+}
+
+/*
+.stories_desc_box {
+    margin-right:240px;
+    height: 100%;
+}
+.stories_desc {
+    width: 100%;
+    float: left;
+}
+.stories_ico {
+    position: relative;
+    float: right;
+    width: 200px;
+    height: 100%;
+    margin-left: -200px;
+    background-color: red;
+}*/
