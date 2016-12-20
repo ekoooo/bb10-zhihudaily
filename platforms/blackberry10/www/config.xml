@@ -9,4 +9,5 @@
     </author>
     <content src="index.html" />
     <access origin="http://news-at.zhihu.com" subdomains="true" />
+    <access origin="http://zhimg.com" subdomains="true" />
 </widget>

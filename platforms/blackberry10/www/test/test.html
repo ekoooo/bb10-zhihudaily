@@ -66,17 +66,12 @@
             });
             storiesListDom.append(tempLi);
         }
+        if(i % 2 !== 0) {
+            tempLi.css({
+                width: '98%'
+            });
+        }
         storiesDom.append(storiesListDom);
-
-
-        $.ajax({
-          url: 'http://pic1.zhimg.com/30d5d1a4366b624d515edce8f1f26bd8.jpg',
-          headers: {'Referer': 'http://www.zhihu.com' },
-          success: function(data){
-            console.log(data);
-          }
-        });
-
     });
 </script>
 </body>

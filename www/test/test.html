@@ -66,6 +66,11 @@
             });
             storiesListDom.append(tempLi);
         }
+        if(i % 2 !== 0) {
+            tempLi.css({
+                width: '98%'
+            });
+        }
         storiesDom.append(storiesListDom);
     });
 </script>
