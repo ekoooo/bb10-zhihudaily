@@ -5,7 +5,8 @@ var App = {
     },
     attachEvent: function() {
         $(document).on('bb_ondomready', function(e, paras) {
-            if(paras.id === 'latest') {
+            var id = paras.id;
+            if(id === 'latest') {
                 ZhihuDaily.initLatestPage();
             }
         });
@@ -15,7 +16,6 @@ var App = {
 var DateTools = {
     /**
      * 获取当前日期, 格式 2016-11-06
-     * @return {[string]}
      */
     getCurrentDateStr: function() {
         return this.getDate(new Date());
@@ -51,7 +51,6 @@ var DateTools = {
     /**
      * 获取 2016-11-06 格式日期
      * @param  {[Date]} date
-     * @return {[string]}
      */
     getDate: function(date) {
         var m = date.getMonth() + 1;
@@ -61,6 +60,15 @@ var DateTools = {
 };
 
 var ZhihuDaily = {
+    onStoriesScreenScroll: function() {
+        var boxH = $('.bb-screen').height() - bb.screen.getActionBarHeight();
+        var topH = $('.stories_box').scrollTop();
+        var contentH = $('.stories').height();
+        if(boxH + topH >= contentH && !this.IS_READING) {
+            this.IS_READING = true;
+            this.appendPreDayNews($(document.querySelector('.stories_list:last-child')).attr('data-date'));
+        }
+    },
     /**
      * 知乎日报 API
      */
@@ -80,6 +88,7 @@ var ZhihuDaily = {
     },
     DATE_SUFFIX: " 06:59:58", // api 日期中固定时间
     AJAX_GET_TIME_OUT: 5000, // api 请求过期时间
+    IS_READING: false, // 是否正在读取数据
     /**
      * 替换 api 中 #{para} 参数
      * @param  {[string]} api 带 #{para} 参数的 url
@@ -119,8 +128,6 @@ var ZhihuDaily = {
     },
     /**
      * ajax get 同步获取信息
-     * @param  {[type]} url [description]
-     * @return {[type]}     [description]
      */
     ajaxGet: function(url) {
         var rs = null;
@@ -139,11 +146,16 @@ var ZhihuDaily = {
         });
         return rs;
     },
-    initLatestPage: function() {
-        var storiesObj = this.getLatestNewsObj().stories;
+    /**
+     * 加入消息至主页页面
+     * @param  {[type]} storiesObj [description]
+     * @param  {[type]} date 显示日期 xxxx-xx-xx
+     */
+    appendNews2Stories: function(storiesObj, date) {
+        date = date || DateTools.getCurrentDateStr();
 
         var storiesDom = $('.stories');
-        var storiesListDom = $('<ul/>').addClass('stories_list');
+        var storiesListDom = $('<ul/>').addClass('stories_list').attr('data-date', date).append($('<div class="stories_date">' + date + '</div>'));
         var liTpl = '<li>' +
             '   <a href="javascript: void(0);">' +
             '       <div class="stories_desc"></div>' +
@@ -162,6 +174,45 @@ var ZhihuDaily = {
             });
             storiesListDom.append(tempLi);
         }
+        // 如果最后一个消息是单数, 则占一整行
+        if(i % 2 !== 0) {
+            tempLi.css({
+                width: '98%'
+            });
+        }
+
         storiesDom.append(storiesListDom);
+        bb.refresh();
+    },
+    /**
+     * 初始化最新消息列表
+     */
+    initLatestPage: function() {
+        this.showLoading();
+
+        this.appendNews2Stories(this.getLatestNewsObj().stories);
+        // 用于判断滚动位置
+        $('.stories').parent().parent().addClass('stories_box');
+
+        this.removeLoading();
+    },
+    /**
+     * 主页下滑获取前一天数据并显示
+     * @param  {[type]} crtDate 当前日期 xxxx-xx-xx
+     */
+    appendPreDayNews: function(crtDate) {
+        this.showLoading();
+
+        var preDate = DateTools.getPreDateStr(crtDate);
+        this.appendNews2Stories(this.getBeforeNewsObj(preDate).stories, preDate);
+        this.IS_READING = false;
+
+        this.removeLoading();
+    },
+    showLoading: function() {
+        $('body').append($('<div class="loading">loading...</div>'));
+    },
+    removeLoading: function() {
+        $('.loading').remove();
     }
 }

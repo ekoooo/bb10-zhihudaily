@@ -13,7 +13,7 @@
 <body>
 
 <div class="stories">
-    <div class="stories_date"></div>
+    <div class="stories_date">最新消息</div>
 <!--     <ul class="stories_list">
         <li>
             <a href="#">
@@ -62,7 +62,7 @@
             tempLi.find('a').attr('data-id', item.id);
             tempLi.find('.stories_desc').text(item.title);
             tempLi.find('.stories_ico').css({
-                background: 'url(' + item.images[0] + ')'
+                // background: 'url(' + item.images[0] + ')'
             });
             storiesListDom.append(tempLi);
         }
@@ -72,6 +72,18 @@
             });
         }
         storiesDom.append(storiesListDom);
+
+        function isScrollBtn() {
+            return $(document).height() === $(window).height() - $(window).scrollTop();
+        }
+
+
+        var isReading = false;
+        $(window).on('scroll', function(e) {
+            if(isScrollBtn() && !isReading) {
+
+            }
+        });
     });
 </script>
 </body>
