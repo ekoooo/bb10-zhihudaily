@@ -1,4 +1,5 @@
 var App = {
+    isInitHomeEvt: false,
     initApp: function() {
         bb.pushScreen('app.html', 'latest');
         this.attachEvent();
@@ -8,8 +9,19 @@ var App = {
             var id = paras.id;
             if(id === 'latest') {
                 ZhihuDaily.initLatestPage();
+            }else if(id === 'sections') {
+                ZhihuDaily.initSectionsPage();
+            }
+
+            if(!this.isInitHomeEvt) {
+                // 主页按钮点击监听 (dom 中直接添加 onclick 有问题?)
+                $(document).on('click', 'div[class$="-signature-icon"]', function(e) {
+                    ActionBarMgr.aTrigger('action_bar_home');
+                });
+                this.isInitHomeEvt = true;
             }
         });
+
     }
 };
 
@@ -60,18 +72,7 @@ var DateTools = {
 };
 
 var ZhihuDaily = {
-    onStoriesScreenScroll: function() {
-        var boxH = $('.bb-screen').height() - bb.screen.getActionBarHeight();
-        var topH = $('.stories_box').scrollTop();
-        var contentH = $('.stories').height();
-        if(boxH + topH >= contentH && !this.IS_READING) {
-            this.IS_READING = true;
-            this.appendPreDayNews($(document.querySelector('.stories_list:last-child')).attr('data-date'));
-        }
-    },
-    /**
-     * 知乎日报 API
-     */
+    is_reading: false, // 是否正在读取数据
     APIs: {
         "latest"        : "http://news-at.zhihu.com/api/4/news/latest",                     // 最新消息
         "hot"           : "http://news-at.zhihu.com/api/3/news/hot",                        // 热门消息
@@ -88,7 +89,16 @@ var ZhihuDaily = {
     },
     DATE_SUFFIX: " 06:59:58", // api 日期中固定时间
     AJAX_GET_TIME_OUT: 5000, // api 请求过期时间
-    IS_READING: false, // 是否正在读取数据
+    IS_SHOW_LOADING: true,
+    onStoriesScreenScroll: function() {
+        var boxH = $('.bb-screen').height() - bb.screen.getActionBarHeight();
+        var topH = $('.stories_box').scrollTop();
+        var contentH = $('.stories').height();
+        if(boxH + topH >= contentH && !this.is_reading) {
+            this.is_reading = true;
+            this.appendPreDayNews($(document.querySelector('.stories_list:last-child')).attr('data-date'));
+        }
+    },
     /**
      * 替换 api 中 #{para} 参数
      * @param  {[string]} api 带 #{para} 参数的 url
@@ -162,9 +172,9 @@ var ZhihuDaily = {
             '       <div class="stories_ico"></div>' +
             '   </a>' +
             '</li>';
-        var item, tempLi;
+        var item, tempLi, len = storiesObj.length;
 
-        for (var i = 0; i < storiesObj.length; i++) {
+        for (var i = 0; i < len; i++) {
             item = storiesObj[i];
             tempLi = $(liTpl);
             tempLi.find('a').attr('data-id', item.id);
@@ -182,19 +192,18 @@ var ZhihuDaily = {
         }
 
         storiesDom.append(storiesListDom);
-        bb.refresh();
+        // bb.refresh();
     },
     /**
      * 初始化最新消息列表
      */
     initLatestPage: function() {
-        this.showLoading();
-
         this.appendNews2Stories(this.getLatestNewsObj().stories);
         // 用于判断滚动位置
         $('.stories').parent().parent().addClass('stories_box');
-
-        this.removeLoading();
+    },
+    initSectionsPage: function() {
+        
     },
     /**
      * 主页下滑获取前一天数据并显示
@@ -205,14 +214,52 @@ var ZhihuDaily = {
 
         var preDate = DateTools.getPreDateStr(crtDate);
         this.appendNews2Stories(this.getBeforeNewsObj(preDate).stories, preDate);
-        this.IS_READING = false;
+        this.is_reading = false;
 
         this.removeLoading();
     },
     showLoading: function() {
-        $('body').append($('<div class="loading">loading...</div>'));
+        if(this.IS_SHOW_LOADING) {
+            $('body').append($('<div class="loading">loading...</div>'));
+            $('.loading').fadeIn();
+        }
     },
     removeLoading: function() {
-        $('.loading').remove();
+        if(this.IS_SHOW_LOADING) {
+            var loading = $('.loading');
+            loading.fadeOut(function() {
+                loading.remove();
+            });
+        }
+    }
+}
+
+var ActionBarMgr = {
+    runing: false,
+    aTrigger: function(e) {
+        var id = typeof e === 'string' ? e : $(e).attr('id');
+        if(!this.runing) {
+            switch (id) {
+                case 'action_bar_sections':
+                    this.runing = true;
+                    bb.pushScreen('sections.html', 'sections');
+                    this.rundingEnd();
+                    break;
+                case 'action_bar_home':
+                    this.runing = true;
+                    bb.pushScreen('app.html', 'latest');
+                    this.rundingEnd();
+                    break;
+                case 'action_bar_themes':
+                    break;
+                default:
+                    break;
+            }
+        }
+    },
+    rundingEnd: function() {
+        window.setTimeout(function() {
+            this.runing = false;
+        }.bind(this), 200)
     }
 }
