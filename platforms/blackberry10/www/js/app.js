@@ -18,10 +18,15 @@ var App = {
                 $(document).on('click', 'div[class$="-signature-icon"]', function(e) {
                     ActionBarMgr.aTrigger('action_bar_home');
                 });
+
+                // 主页滚动监听
+                $('.stories_box').on('scroll', function(e) {
+                    ZhihuDaily.onStoriesScreenScroll(e);
+                });
+
                 this.isInitHomeEvt = true;
             }
         });
-
     }
 };
 
@@ -94,6 +99,7 @@ var ZhihuDaily = {
         var boxH = $('.bb-screen').height() - bb.screen.getActionBarHeight();
         var topH = $('.stories_box').scrollTop();
         var contentH = $('.stories').height();
+        console.log(boxH , topH , contentH);
         if(boxH + topH >= contentH && !this.is_reading) {
             this.is_reading = true;
             this.appendPreDayNews($(document.querySelector('.stories_list:last-child')).attr('data-date'));
@@ -203,7 +209,7 @@ var ZhihuDaily = {
         $('.stories').parent().parent().addClass('stories_box');
     },
     initSectionsPage: function() {
-        
+
     },
     /**
      * 主页下滑获取前一天数据并显示

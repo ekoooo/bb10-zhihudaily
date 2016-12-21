@@ -18,10 +18,15 @@ var App = {
                 $(document).on('click', 'div[class$="-signature-icon"]', function(e) {
                     ActionBarMgr.aTrigger('action_bar_home');
                 });
+
+                // 主页滚动监听
+                $('.stories_box').on('scroll', function(e) {
+                    ZhihuDaily.onStoriesScreenScroll(e);
+                });
+
                 this.isInitHomeEvt = true;
             }
         });
-
     }
 };
 
@@ -203,7 +208,7 @@ var ZhihuDaily = {
         $('.stories').parent().parent().addClass('stories_box');
     },
     initSectionsPage: function() {
-        
+
     },
     /**
      * 主页下滑获取前一天数据并显示
