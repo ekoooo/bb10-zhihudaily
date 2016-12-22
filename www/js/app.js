@@ -198,7 +198,6 @@ var ZhihuDaily = {
             '</li>';
         var item, tempLi, len = storiesObj.length;
 
-        // 如果是热门消息
         if('热门消息' === date) {
             for (var i = 0; i < len; i++) {
                 item = storiesObj[i];
@@ -407,7 +406,6 @@ var ShowScreen = {
         bb.pushScreen('app.html', 'hots');
     }
 }
-
 
 var BBUtil = {
     showConnectionDialog: function() {
