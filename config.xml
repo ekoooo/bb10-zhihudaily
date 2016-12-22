@@ -8,6 +8,9 @@
         liuwanlin
     </author>
     <content src="index.html" />
-    <access origin="http://news-at.zhihu.com" subdomains="true"/>
+    <access origin="*" />
+    <access origin="http://zhihu.com" subdomains="true"/>
     <access origin="http://zhimg.com" subdomains="true"/>
+    <access origin="https://zhihu.com" subdomains="true"/>
+    <access origin="https://zhimg.com" subdomains="true"/>
 </widget>

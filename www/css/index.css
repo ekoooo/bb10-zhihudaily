@@ -106,6 +106,7 @@ h1 {
     flex-direction: row;
     justify-content: space-between;
     margin-bottom: 20px;
+    padding: 0 !important; /*防止知乎引入样式的 padding 影响*/
 }
 
 .stories_list li {
@@ -271,3 +272,15 @@ h1 {
     -webkit-transform: translateY(-50%);
 }
 /*弹出遮罩 end*/
+
+
+/*news 文字字体调整 start */
+.mask .meta, .mask .content, .mask .view-more a, .mask .question-title {
+    font-size: 40px !important;
+}
+.mask .view-more a {
+    height: 65px !important;
+    line-height: 65px !important;
+}
+
+/*news 文字字体调整 end */

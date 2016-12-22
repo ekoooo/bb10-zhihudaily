@@ -153,6 +153,8 @@ var ZhihuDailyDate = {
             },
             error: function(xhr, type) {
                 console.log(xhr, type);
+                // 如果失败则移除 loading
+                ZhihuDaily.removeLoading();
             }
         });
         return rs;
@@ -343,7 +345,17 @@ var ZhihuDaily = {
      */
     viewNews: function(id) {
         this.addMask();
-        console.log(ZhihuDailyDate.getNewsObj(id));
+
+        var data = ZhihuDailyDate.getNewsObj(id);
+        var cssLen = data.css.length;
+
+        if(cssLen > 0) {
+            for (var i = 0; i < cssLen; i++) {
+                $('.mask').prepend($('<link rel="stylesheet" type="text/css" href="' + data.css[i] + '" />'));
+            }
+        }
+        $('.mask .content_box').html(data.body);
+        $('.mask .title').html(data.title);
     },
     addMask: function() {
         $(bb.screen.currentScreen).append($('<div class="mask">' +
@@ -351,7 +363,7 @@ var ZhihuDaily = {
             '        <div class="title"></div>' +
             '        <button class="close_btn">X</button>' +
             '    </div>' +
-            '    <div class="content"></div>' +
+            '    <div class="content_box"></div>' +
             '</div>'));
     }
 }
