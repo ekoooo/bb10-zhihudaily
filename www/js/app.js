@@ -1,5 +1,4 @@
 var App = {
-    isInitHomeEvt: false,
     initApp: function() {
         bb.pushScreen('app.html', 'latest');
         this.attachEvent();
@@ -26,27 +25,24 @@ var App = {
                 default:
                     break;
             }
+        });
 
-            if(!this.isInitHomeEvt) {
-                // 主页按钮点击监听 (dom 中直接添加 onclick 有问题?)
-                $(document).on('click', 'div[class$="-signature-icon"]', function(e) {
-                    ActionBarMgr.aTrigger('action_bar_home');
-                });
+        // 主页按钮点击监听 (dom 中直接添加 onclick 有问题?)
+        $(document).on('click', 'div[class$="-signature-icon"]', function(e) {
+            ActionBarMgr.aTrigger('action_bar_home');
+        });
 
-                // 弹出层关闭操作
-                $(document).on('click', '.close_btn', function(e) {
-                    var mask = $(e.target).parents('.mask');
-                    mask.fadeOut(function() {
-                        mask.remove();
-                    });
-                });
+        // 弹出层关闭操作
+        $(document).on('click', '.close_btn', function(e) {
+            var mask = $(e.target).parents('.mask');
+            mask.fadeOut(function() {
+                mask.remove();
+            });
+        });
 
-                $(document).on('click', '.stories a[data-id]', function(e) {
-                    ZhihuDaily.viewNews();
-                });
-
-                this.isInitHomeEvt = true;
-            }
+        // 点击新闻, 显示内容
+        $(document).on('click', '.stories a[data-id]', function(e) {
+            ZhihuDaily.viewNews($(e.currentTarget).attr('data-id'));
         });
     }
 };
@@ -129,6 +125,9 @@ var ZhihuDailyDate = {
     },
     getSectionsObj: function() {
         return this.ajaxGet(APIs.sections);
+    },
+    getNewsObj: function(id) {
+        return this.ajaxGet(this.getAPIURL(APIs.news, id));
     },
     /**
      * ajax get 同步获取信息
@@ -342,16 +341,17 @@ var ZhihuDaily = {
     /**
      * 查看内容
      */
-    viewNews: function() {
+    viewNews: function(id) {
         this.addMask();
+        console.log(ZhihuDailyDate.getNewsObj(id));
     },
     addMask: function() {
-        $(bb.screen.currentScreen).append($('<div class="mask">' + 
-            '    <div class="head">' + 
-            '        <div class="title"></div>' + 
-            '        <button class="close_btn">X</button>' + 
-            '    </div>' + 
-            '    <div class="content"></div>' + 
+        $(bb.screen.currentScreen).append($('<div class="mask">' +
+            '    <div class="head">' +
+            '        <div class="title"></div>' +
+            '        <button class="close_btn">X</button>' +
+            '    </div>' +
+            '    <div class="content"></div>' +
             '</div>'));
     }
 }
@@ -413,9 +413,9 @@ var BBUtil = {
             // TODO
         }
 
-        blackberry.ui.dialog.standardAskAsync("无法连接网络 请检查您的数据连接并重试", 
-            blackberry.ui.dialog.D_OK, 
-            dialogCallBack, 
+        blackberry.ui.dialog.standardAskAsync("无法连接网络 请检查您的数据连接并重试",
+            blackberry.ui.dialog.D_OK,
+            dialogCallBack,
             {
                 title : "Network Connection Required"
             }
