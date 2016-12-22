@@ -6,16 +6,25 @@ var App = {
     },
     attachEvent: function() {
         $(document).on('bb_ondomready', function(e, paras) {
-            var id = paras.id;
-            if(id === 'latest') {
-                ZhihuDaily.initLatestPage();
-
-                // 主页滚动监听
-                $('.stories_box').on('scroll', function(e) {
-                    ZhihuDaily.onStoriesScreenScroll(e);
-                });
-            }else if(id === 'sections') {
-                ZhihuDaily.initSectionsPage();
+            switch (paras.id) {
+                case 'latest':
+                    ZhihuDaily.initLatestPage();
+                    // 主页滚动监听
+                    $('.stories_box').on('scroll', function(e) {
+                        ZhihuDaily.onStoriesScreenScroll(e);
+                    });
+                    break;
+                case 'sections':
+                    ZhihuDaily.initSectionsPage();
+                    break;
+                case 'themes':
+                    ZhihuDaily.initThemesPage();
+                    break;
+                case 'hots':
+                    ZhihuDaily.initHotsPage();
+                    break;
+                default:
+                    break;
             }
 
             if(!this.isInitHomeEvt) {
@@ -93,17 +102,9 @@ var ZhihuDaily = {
         "recommenders"  : "http://news-at.zhihu.com/api/4/story/#{para}/recommenders",      // 新闻的推荐者
     },
     DATE_SUFFIX: " 06:59:58", // api 日期中固定时间
-    AJAX_GET_TIME_OUT: 5000, // api 请求过期时间
-    IS_SHOW_LOADING: true,
-    onStoriesScreenScroll: function() {
-        var boxH = $('.bb-screen').height() - bb.screen.getActionBarHeight();
-        var topH = $('.stories_box').scrollTop();
-        var contentH = $('.stories').height();
-        if(boxH + topH + 20 >= contentH && !this.is_reading) {
-            this.is_reading = true;
-            this.appendPreDayNews($(document.querySelector('.stories_list:last-child')).attr('data-date'));
-        }
-    },
+    AJAX_GET_TIME_OUT: 5000, // ajax 请求过期时间
+    IS_SHOW_LOADING: true, // 是否显示 loading 提示
+    LOADING_RES_HEIGHT: 20, // loading 距离底部位置多少时开始加载, 单位 px
     /**
      * 替换 api 中 #{para} 参数
      * @param  {[string]} api 带 #{para} 参数的 url
@@ -145,7 +146,15 @@ var ZhihuDaily = {
      * ajax get 同步获取信息
      */
     ajaxGet: function(url) {
-        var rs = null;
+        var rs = {};
+
+        // 判断是否启动网络
+        if(!window.navigator.onLine) {
+            BBUtil.showConnectionDialog();
+            this.removeLoading();
+            return rs;
+        }
+
         $.ajax({
             async: false,
             type: 'GET',
@@ -167,6 +176,10 @@ var ZhihuDaily = {
      * @param  {[type]} date 显示日期 xxxx-xx-xx
      */
     appendNews2Stories: function(storiesObj, date) {
+        if(!storiesObj) {
+            return;
+        }
+
         date = date || DateTools.getCurrentDateStr();
 
         var storiesListDom = $('<ul/>').addClass('stories_list').attr('data-date', date).append($('<div class="stories_date">' + date + '</div>'));
@@ -178,22 +191,31 @@ var ZhihuDaily = {
             '</li>';
         var item, tempLi, len = storiesObj.length;
 
-        for (var i = 0; i < len; i++) {
-            item = storiesObj[i];
-            tempLi = $(liTpl);
-            tempLi.find('a').attr('data-id', item.id);
-            tempLi.find('.stories_desc').text(item.title);
-            tempLi.find('.stories_ico').css({
-                background: 'url(' + item.images[0] + ')'
-            });
-            storiesListDom.append(tempLi);
+        // 如果是热门消息
+        if('热门消息' === date) {
+            for (var i = 0; i < len; i++) {
+                item = storiesObj[i];
+                tempLi = $(liTpl);
+                tempLi.find('a').attr('data-id', item.news_id);
+                tempLi.find('.stories_desc').text(item.title);
+                tempLi.find('.stories_ico').css({
+                    background: 'url(' + item.thumbnail + ')'
+                });
+                storiesListDom.append(tempLi);
+            }
+        }else {
+            for (var i = 0; i < len; i++) {
+                item = storiesObj[i];
+                tempLi = $(liTpl);
+                tempLi.find('a').attr('data-id', item.id);
+                tempLi.find('.stories_desc').text(item.title);
+                tempLi.find('.stories_ico').css({
+                    background: 'url(' + item.images[0] + ')'
+                });
+                storiesListDom.append(tempLi);
+            }
         }
-        // 如果最后一个消息是单数, 则占一整行
-        if(i % 2 !== 0) {
-            tempLi.css({
-                width: '98%'
-            });
-        }
+
         $('.stories').append(storiesListDom);
 
         bb.refresh();
@@ -208,36 +230,72 @@ var ZhihuDaily = {
         // 用于判断滚动位置
         $('.stories').parent().parent().addClass('stories_box');
 
+        // 判断最新消息时候可以触发滚动事件, 如果不可以多加载一天消息
+        window.setTimeout(function() {
+            if(this.isStoriesKeepLoading) {
+                this.appendPreDayNews($(document.querySelector('.stories_list:last-child')).attr('data-date'));
+            }
+        }, 200)
+
+        this.removeLoading();
+    },
+    initHotsPage: function() {
+        this.showLoading();
+
+        this.appendNews2Stories(this.getHotNewsObj().recent, '热门消息');
+
         this.removeLoading();
     },
     initSectionsPage: function() {
+        this.initSectionsOrThemesPage('sections');
+    },
+    initThemesPage: function() {
+        this.initSectionsOrThemesPage('themes');
+    },
+    /**
+     * 初始化栏目或者主题总览
+     * @type {[string]} sections 栏目总览, themes 主题总览
+     */
+    initSectionsOrThemesPage: function(type) {
         this.showLoading();
 
-        var sectionsListDom = $('<ul/>').addClass('sections_list');
+        var ulDom = $('<ul/>').addClass('sections_themes_list');
         var liTpl = '<li>' +
             '    <a href="javascript: void(0);">' +
             '        <p></p>' +
             '        <div></div>' +
             '    </a>' +
             '</li>';
-        var sections = this.getSectionsObj().data;
-        var section, tempLi, len = sections.length;
+        var rs = null;
+        if('themes' === type) {
+            rs = this.getThemesObj().others;
+        }else {
+            rs = this.getSectionsObj().data;
+        }
+        if(!rs) {
+            return;
+        }
+
+        var item, tempLi, len = rs.length;
         for (var i = 0; i < len; i++) {
-            section = sections[i];
+            item = rs[i];
             tempLi = $(liTpl);
 
-            tempLi.find('a').attr('data-id', section.id).css({
-                background: 'url(' + section.thumbnail + ')'
+            tempLi.find('a').attr('data-id', item.id).css({
+                background: 'url(' + item.thumbnail + ')'
             });
-            tempLi.find('a p').text(section.name);
-            tempLi.find('a div').text(section.description === '' ? section.name : section.description);
+            tempLi.find('a p').text(item.name);
+            tempLi.find('a div').text(item.description === '' ? item.name : item.description);
 
-            sectionsListDom.append(tempLi);
+            ulDom.append(tempLi);
         }
-        $('.sections').append(sectionsListDom);
+        $('.sections_themes').append(ulDom);
 
         bb.refresh();
         this.removeLoading();
+    },
+    isStoriesKeepLoading: function() {
+        return $('.stories').height() + this.LOADING_RES_HEIGHT <= $('.stories_box').height();
     },
     /**
      * 主页下滑获取前一天数据并显示
@@ -245,12 +303,21 @@ var ZhihuDaily = {
      */
     appendPreDayNews: function(crtDate) {
         this.showLoading();
+        this.is_reading = true;
 
         var preDate = DateTools.getPreDateStr(crtDate);
         this.appendNews2Stories(this.getBeforeNewsObj(preDate).stories, preDate);
-        this.is_reading = false;
 
+        this.is_reading = false;
         this.removeLoading();
+    },
+    onStoriesScreenScroll: function() {
+        var boxH = $('.bb-screen').height() - bb.screen.getActionBarHeight();
+        var topH = $('.stories_box').scrollTop();
+        var contentH = $('.stories').height();
+        if(boxH + topH + this.LOADING_RES_HEIGHT >= contentH && !this.is_reading) {
+            this.appendPreDayNews($(document.querySelector('.stories_list:last-child')).attr('data-date'));
+        }
     },
     showLoading: function() {
         if(this.IS_SHOW_LOADING) {
@@ -270,30 +337,68 @@ var ZhihuDaily = {
 
 var ActionBarMgr = {
     runing: false,
+    ACTION_BAR_CLICK_ITV: 200, // action bar 点击触发时间间隔
     aTrigger: function(e) {
         var id = typeof e === 'string' ? e : $(e).attr('id');
         if(!this.runing) {
             switch (id) {
                 case 'action_bar_sections':
-                    this.runing = true;
-                    bb.pushScreen('sections.html', 'sections');
-                    this.rundingEnd();
-                    break;
-                case 'action_bar_home':
-                    this.runing = true;
-                    bb.pushScreen('app.html', 'latest');
-                    this.rundingEnd();
+                    ShowScreen.sections();
                     break;
                 case 'action_bar_themes':
+                    ShowScreen.themes();
+                    break;
+                case 'action_bar_home':
+                    ShowScreen.latest();
+                    break;
+                case 'action_bar_hots':
+                    ShowScreen.hots();
                     break;
                 default:
                     break;
             }
+            this.rundingEnd();
         }
     },
     rundingEnd: function() {
         window.setTimeout(function() {
             this.runing = false;
-        }.bind(this), 200)
+        }.bind(this), this.ACTION_BAR_CLICK_ITV)
+    }
+}
+
+var ShowScreen = {
+    sections: function() {
+        ActionBarMgr.runing = true;
+        bb.pushScreen('sections_themes.html', 'sections');
+    },
+    themes: function() {
+        ActionBarMgr.runing = true;
+        bb.pushScreen('sections_themes.html', 'themes');
+    },
+    latest: function() {
+        ActionBarMgr.runing = true;
+        bb.pushScreen('app.html', 'latest');
+    },
+    hots: function() {
+        ActionBarMgr.runing = true;
+        bb.pushScreen('app.html', 'hots');
+    }
+}
+
+
+var BBUtil = {
+    showConnectionDialog: function() {
+        function dialogCallBack(selection) {
+            // TODO
+        }
+
+        blackberry.ui.dialog.standardAskAsync("无法连接网络 请检查您的数据连接并重试", 
+            blackberry.ui.dialog.D_OK, 
+            dialogCallBack, 
+            {
+                title : "Network Connection Required"
+            }
+        );
     }
 }
