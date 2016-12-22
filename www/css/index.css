@@ -231,3 +231,43 @@ h1 {
     background: rgba(0,0,0,0.4);
 }
 /*栏目总览/主题日报列表 end*/
+
+
+/*弹出遮罩 start*/
+.mask {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    padding-top: 100px;
+    overflow: auto;
+    box-sizing: border-box;
+    z-index: 9;
+    background-color: #fff;
+}
+.head {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 120px;
+    line-height: 120px;
+    font-size: 40px;
+    text-align: center;
+    border-bottom: 1px solid #eee;
+    background: -webkit-linear-gradient(top, #fff 0%, #eee 100%);
+}
+.close_btn {
+    position: absolute;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    right: 30px;
+    top: 50%;
+    outline: none;
+    border: 1px solid #eee;
+    background: -webkit-linear-gradient(top, #fff 0%, #bbb 100%);
+    color: #fff;
+    font-size: 30px;
+    -webkit-transform: translateY(-50%);
+}
+/*弹出遮罩 end*/

@@ -33,6 +33,18 @@ var App = {
                     ActionBarMgr.aTrigger('action_bar_home');
                 });
 
+                // 弹出层关闭操作
+                $(document).on('click', '.close_btn', function(e) {
+                    var mask = $(e.target).parents('.mask');
+                    mask.fadeOut(function() {
+                        mask.remove();
+                    });
+                });
+
+                $(document).on('click', '.stories a[data-id]', function(e) {
+                    ZhihuDaily.viewNews();
+                });
+
                 this.isInitHomeEvt = true;
             }
         });
@@ -227,7 +239,7 @@ var ZhihuDaily = {
             if(this.isStoriesKeepLoading) {
                 this.appendPreDayNews($(document.querySelector('.stories_list:last-child')).attr('data-date'));
             }
-        }, 200)
+        }, 200);
 
         this.removeLoading();
     },
@@ -324,6 +336,21 @@ var ZhihuDaily = {
                 loading.remove();
             });
         }
+    },
+    /**
+     * 查看内容
+     */
+    viewNews: function() {
+        this.addMask();
+    },
+    addMask: function() {
+        $(bb.screen.currentScreen).append($('<div class="mask">' + 
+            '    <div class="head">' + 
+            '        <div class="title"></div>' + 
+            '        <button class="close_btn">X</button>' + 
+            '    </div>' + 
+            '    <div class="content"></div>' + 
+            '</div>'));
     }
 }
 
@@ -355,7 +382,7 @@ var ActionBarMgr = {
     rundingEnd: function() {
         window.setTimeout(function() {
             this.runing = false;
-        }.bind(this), this.ACTION_BAR_CLICK_ITV)
+        }.bind(this), this.ACTION_BAR_CLICK_ITV);
     }
 }
 
