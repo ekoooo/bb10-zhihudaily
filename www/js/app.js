@@ -356,6 +356,8 @@ var ZhihuDaily = {
         }
         $('.mask .content_box').html(data.body);
         $('.mask .title').html(data.title);
+
+        this.link2Blank();
     },
     addMask: function() {
         $(bb.screen.currentScreen).append($('<div class="mask">' +
@@ -365,6 +367,9 @@ var ZhihuDaily = {
             '    </div>' +
             '    <div class="content_box"></div>' +
             '</div>'));
+    },
+    link2Blank: function() {
+        $('.content_box a').attr('target', '_blank');
     }
 }
 
