@@ -109,25 +109,8 @@ var APIs = {
     "recommenders" : "http://news-at.zhihu.com/api/4/story/#{para}/recommenders", // 新闻的推荐者
 }
 
-var ZhihuDaily = {
-    is_reading: false, // 是否正在读取数据
-    DATE_SUFFIX: " 06:59:58", // api 日期中固定时间
+var ZhihuDailyDate = {
     AJAX_GET_TIME_OUT: 5000, // ajax 请求过期时间
-    IS_SHOW_LOADING: true, // 是否显示 loading 提示
-    LOADING_RES_HEIGHT: 20, // loading 距离底部位置多少时开始加载, 单位 px
-    /**
-     * 替换 api 中 #{para} 参数
-     */
-    getAPIURL: function(api, para) {
-        return api.replace('#{para}', para);
-    },
-    /**
-     * 获取开始时间时间戳, 用于 api 中时间戳参数
-     * @param  {[string]} date 日期, 格式 2016-11-06
-     */
-    getStartTimeTSP: function(date) {
-        return +new Date(date + this.DATE_SUFFIX);
-    },
     /**
      * 获取 '过往消息' 消息信息, 这个方法将调整 api 中获取的是上一天消息的问题
      * @param  {[type]} date 当前日期
@@ -156,7 +139,7 @@ var ZhihuDaily = {
         // 判断是否启动网络
         if(!window.navigator.onLine) {
             BBUtil.showConnectionDialog();
-            this.removeLoading();
+            ZhihuDaily.removeLoading();
             return rs;
         }
 
@@ -174,6 +157,26 @@ var ZhihuDaily = {
             }
         });
         return rs;
+    },
+    /**
+     * 替换 api 中 #{para} 参数
+     */
+    getAPIURL: function(api, para) {
+        return api.replace('#{para}', para);
+    }
+}
+
+var ZhihuDaily = {
+    is_reading: false, // 是否正在读取数据
+    DATE_SUFFIX: " 06:59:58", // api 日期中固定时间
+    IS_SHOW_LOADING: true, // 是否显示 loading 提示
+    LOADING_RES_HEIGHT: 20, // loading 距离底部位置多少时开始加载, 单位 px
+    /**
+     * 获取开始时间时间戳, 用于 api 中时间戳参数
+     * @param  {[string]} date 日期, 格式 2016-11-06
+     */
+    getStartTimeTSP: function(date) {
+        return +new Date(date + this.DATE_SUFFIX);
     },
     /**
      * 加入消息至主页页面
@@ -225,12 +228,26 @@ var ZhihuDaily = {
         bb.refresh();
     },
     /**
+     * 主页下滑获取前一天数据并显示
+     * @param  {[type]} crtDate 当前日期 xxxx-xx-xx
+     */
+    appendPreDayNews: function(crtDate) {
+        this.showLoading();
+        this.is_reading = true;
+
+        var preDate = DateTools.getPreDateStr(crtDate);
+        this.appendNews2Stories(ZhihuDailyDate.getBeforeNewsObj(preDate).stories, preDate);
+
+        this.is_reading = false;
+        this.removeLoading();
+    },
+    /**
      * 初始化最新消息列表
      */
     initLatestPage: function() {
         this.showLoading();
 
-        this.appendNews2Stories(this.getLatestNewsObj().stories);
+        this.appendNews2Stories(ZhihuDailyDate.getLatestNewsObj().stories);
         // 用于判断滚动位置
         $('.stories').parent().parent().addClass('stories_box');
 
@@ -246,7 +263,7 @@ var ZhihuDaily = {
     initHotsPage: function() {
         this.showLoading();
 
-        this.appendNews2Stories(this.getHotNewsObj().recent, '热门消息');
+        this.appendNews2Stories(ZhihuDailyDate.getHotNewsObj().recent, '热门消息');
 
         this.removeLoading();
     },
@@ -272,9 +289,9 @@ var ZhihuDaily = {
             '</li>';
         var rs = null;
         if('themes' === type) {
-            rs = this.getThemesObj().others;
+            rs = ZhihuDailyDate.getThemesObj().others;
         }else {
-            rs = this.getSectionsObj().data;
+            rs = ZhihuDailyDate.getSectionsObj().data;
         }
         if(!rs) {
             return;
@@ -300,20 +317,6 @@ var ZhihuDaily = {
     },
     isStoriesKeepLoading: function() {
         return $('.stories').height() + this.LOADING_RES_HEIGHT <= $('.stories_box').height();
-    },
-    /**
-     * 主页下滑获取前一天数据并显示
-     * @param  {[type]} crtDate 当前日期 xxxx-xx-xx
-     */
-    appendPreDayNews: function(crtDate) {
-        this.showLoading();
-        this.is_reading = true;
-
-        var preDate = DateTools.getPreDateStr(crtDate);
-        this.appendNews2Stories(this.getBeforeNewsObj(preDate).stories, preDate);
-
-        this.is_reading = false;
-        this.removeLoading();
     },
     onStoriesScreenScroll: function() {
         var boxH = $('.bb-screen').height() - bb.screen.getActionBarHeight();
