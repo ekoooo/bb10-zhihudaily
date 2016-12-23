@@ -20,9 +20,6 @@
     "installed_plugins": {
         "com.blackberry.ui.dialog": {
             "PACKAGE_NAME": "tech.lwl.zhihudaily"
-        },
-        "cordova-plugin-inappbrowser": {
-            "PACKAGE_NAME": "tech.lwl.zhihudaily"
         }
     },
     "dependent_plugins": {}

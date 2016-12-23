@@ -12,7 +12,6 @@ module.exports = [
 module.exports.metadata = 
 // TOP OF METADATA
 {
-    "cordova-plugin-inappbrowser": "1.6.1",
     "com.blackberry.ui.dialog": "1.0.0"
 }
 // BOTTOM OF METADATA
