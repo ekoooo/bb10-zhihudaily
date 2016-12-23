@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <meta name="format-detection" content="telephone=no" />
+        <meta name="msapplication-tap-highlight" content="no" />
+        <meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width, height=device-height, target-densitydpi=device-dpi" />
+        <link rel="stylesheet" type="text/css" href="css/lib/reset.css" />
+        <link rel="stylesheet" type="text/css" href="css/lib/bbui-min.css" />
+        <link rel="stylesheet" type="text/css" href="css/index.css" />
+        <title>ZhiHuDaily</title>
+    </head>
+    <body>
+        <script type="text/javascript" src="cordova.js"></script>
+        <script type="text/javascript" src="js/lib/bbui-min.js"></script>
+        <script type="text/javascript" src="js/lib/zepto.min.js"></script>
+        <script type="text/javascript" src="js/lib/fx.js"></script>
+        <script type="text/javascript" src="js/lib/fx_methods.js"></script>
+        <script type="text/javascript" src="js/app.js"></script>
+        <script type="text/javascript">
+            $(window).on('load', function(e) {
+                $(document).on('deviceready', function(e) {
+                    bb.init({
+                        actionBarDark : true,
+                        controlsDark : true,
+                        listsDark : true,
+                        highlightColor : '#00BFFF',
+                        coloredTitleBar : true,
+                        onscreenready : function(element, id) {
+                            $(document).trigger('bb_onscreenready', {"element": element, "id": id});
+                        },
+                        ondomready : function(element, id) {
+                            $(document).trigger('bb_ondomready', {"element": element, "id": id});
+                        }
+                    });
+                });
+
+                App.initApp();
+            });
+        </script>
+    </body>
+</html>
