@@ -256,7 +256,7 @@ var ZhihuDaily = {
             if(this.isStoriesKeepLoading()) {
                 this.appendPreDayNews($(document.querySelector('.stories_list:last-child')).attr('data-date'));
             }
-        }, 200);
+        }.bind(this), 200);
 
         this.removeLoading();
     },
