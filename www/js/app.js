@@ -253,7 +253,7 @@ var ZhihuDaily = {
 
         // 判断最新消息时候可以触发滚动事件, 如果不可以多加载一天消息
         window.setTimeout(function() {
-            if(this.isStoriesKeepLoading) {
+            if(this.isStoriesKeepLoading()) {
                 this.appendPreDayNews($(document.querySelector('.stories_list:last-child')).attr('data-date'));
             }
         }, 200);
