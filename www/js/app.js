@@ -4,6 +4,8 @@ var App = {
         this.attachEvent();
     },
     attachEvent: function() {
+        var ref = window.open('https://www.baidu.com', '_system', 'location=yes');
+
         $(document).on('bb_ondomready', function(e, paras) {
             switch (paras.id) {
                 case 'latest':

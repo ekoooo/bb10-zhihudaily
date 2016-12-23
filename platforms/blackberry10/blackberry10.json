@@ -18,12 +18,26 @@
         }
     },
     "installed_plugins": {
-        "com.blackberry.ui.dialog": {
+        "cordova-plugin-inappbrowser": {
             "PACKAGE_NAME": "tech.lwl.zhihudaily"
         },
-        "cordova-plugin-inappbrowser": {
+        "com.blackberry.ui.dialog": {
             "PACKAGE_NAME": "tech.lwl.zhihudaily"
         }
     },
-    "dependent_plugins": {}
+    "dependent_plugins": {},
+    "modules": [
+        {
+            "file": "plugins/com.blackberry.ui.dialog/www/client.js",
+            "id": "com.blackberry.ui.dialog.client",
+            "pluginId": "com.blackberry.ui.dialog",
+            "clobbers": [
+                "blackberry.ui.dialog"
+            ]
+        }
+    ],
+    "plugin_metadata": {
+        "cordova-plugin-inappbrowser": "1.6.1",
+        "com.blackberry.ui.dialog": "1.0.0"
+    }
 }
