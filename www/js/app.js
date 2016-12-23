@@ -4,8 +4,6 @@ var App = {
         this.attachEvent();
     },
     attachEvent: function() {
-        // var ref = window.open('https://www.baidu.com', '_system', 'location=yes');
-
         $(document).on('bb_ondomready', function(e, paras) {
             switch (paras.id) {
                 case 'latest':
@@ -370,22 +368,22 @@ var ZhihuDaily = {
             }
         }
 
-        var imgTpl = '<div class="content_head_img">' + 
-                '    <div class="img_source">来源: ' + data.image_source + '</div>' + 
-                '    <div class="comments_info">' + 
-                '        <div>' + 
-                '            <img src="img/stories_popularity.png">' + 
-                '            <span>点赞数: ' + commentsdata.popularity + '</span>' + 
-                '        </div>' + 
-                '        <div>' + 
-                '            <img src="img/stories_long_commets.png">' + 
-                '            <span>长评数: ' + commentsdata.long_comments + '</span>' + 
-                '        </div>' + 
-                '        <div>' + 
-                '            <img src="img/stories_short_commets.png">' + 
-                '            <span>短评数: ' + commentsdata.short_comments + '</span>' + 
-                '        </div>' + 
-                '    </div>' + 
+        var imgTpl = '<div class="content_head_img">' +
+                '    <div class="img_source">来源: ' + data.image_source + '</div>' +
+                '    <div class="comments_info">' +
+                '        <div>' +
+                '            <img src="img/stories_popularity.png">' +
+                '            <span>点赞数: ' + commentsdata.popularity + '</span>' +
+                '        </div>' +
+                '        <div>' +
+                '            <img src="img/stories_long_commets.png">' +
+                '            <span>长评数: ' + commentsdata.long_comments + '</span>' +
+                '        </div>' +
+                '        <div>' +
+                '            <img src="img/stories_short_commets.png">' +
+                '            <span>短评数: ' + commentsdata.short_comments + '</span>' +
+                '        </div>' +
+                '    </div>' +
                 '</div>';
 
         $('.mask .content_box').html(data.body).prepend($(imgTpl).css({

@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="format-detection" content="telephone=no" />
+    <meta name="msapplication-tap-highlight" content="no" />
+    <meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width, height=device-height, target-densitydpi=device-dpi" />
+    <title></title>
+    <link rel="stylesheet" href="../css/lib/reset.css"/>
+    <link rel="stylesheet" href="../css/lib/bbui-min.css"/>
+    <link rel="stylesheet" href="../css/index.css"/>
+</head>
+<body>
+
+<div class="stories">
+    <div class="stories_date">最新消息</div>
+<!--     <ul class="stories_list">
+        <li>
+            <a href="#">
+                <div class="stories_desc">看过这些漂亮的石头，觉得毕加索其实也没什么厉害的</div>
+                <div class="stories_ico"></div>
+            </a>
+        </li>
+    </ul> -->
+</div>
+
+
+<script src="../js/lib/zepto.min.js"></script>
+<script src="../js/lib/iscroll.min.js"></script>
+<script src="../js/app.js"></script>
+<script>
+
+    $(function() {
+        var latestObj = null;
+        $.ajax({
+            async: false,
+            type: 'GET',
+            url: 'latest.json',
+            dataType: 'json',
+            timeout: 2000,
+            success: function(data) {
+                latestObj = data;
+            },
+            error: function(xhr, type) {
+                console.log(xhr, type);
+            }
+        });
+        var storiesObj = latestObj.stories;
+
+        var storiesDom = $('.stories');
+        var storiesListDom = $('<ul/>').addClass('stories_list');
+        var liTpl = '<li>' +
+            '   <a href="javascript: void(0);">' +
+            '       <div class="stories_desc"></div>' +
+            '       <div class="stories_ico"></div>' +
+            '   </a>' +
+            '</li>';
+        var item, tempLi;
+        for (var i = 0; i < storiesObj.length; i++) {
+            item = storiesObj[i];
+            tempLi = $(liTpl);
+            tempLi.find('a').attr('data-id', item.id);
+            tempLi.find('.stories_desc').text(item.title);
+            tempLi.find('.stories_ico').css({
+                // background: 'url(' + item.images[0] + ')'
+            });
+            storiesListDom.append(tempLi);
+        }
+        if(i % 2 !== 0) {
+            tempLi.css({
+                width: '98%'
+            });
+        }
+        storiesDom.append(storiesListDom);
+
+        function isScrollBtn() {
+            return $(document).height() === $(window).height() - $(window).scrollTop();
+        }
+
+
+        var isReading = false;
+        $(window).on('scroll', function(e) {
+            if(isScrollBtn() && !isReading) {
+
+            }
+        });
+    });
+</script>
+</body>
+</html>

@@ -3,7 +3,6 @@ module.exports = [
     {
         "file": "plugins/com.blackberry.ui.dialog/www/client.js",
         "id": "com.blackberry.ui.dialog.client",
-        "pluginId": "com.blackberry.ui.dialog",
         "clobbers": [
             "blackberry.ui.dialog"
         ]
