@@ -236,17 +236,20 @@ h1 {
 
 /*弹出遮罩 start*/
 .mask {
-    position: absolute;
+    opacity: 0;
+    position: fixed;
     width: 100%;
     height: 100%;
-    padding-top: 100px;
+    padding-top: 120px;
     overflow: auto;
     box-sizing: border-box;
     z-index: 9;
     background-color: #fff;
 }
+
 .head {
     position: fixed;
+    z-index: 10;
     top: 0;
     left: 0;
     width: 100%;
@@ -257,6 +260,7 @@ h1 {
     border-bottom: 1px solid #eee;
     background: -webkit-linear-gradient(top, #fff 0%, #eee 100%);
 }
+
 .close_btn {
     position: absolute;
     width: 60px;
@@ -275,12 +279,77 @@ h1 {
 
 
 /*news 文字字体调整 start */
-.mask .meta, .mask .content, .mask .view-more a, .mask .question-title {
+.mask .meta, 
+.mask .content, 
+.mask .view-more a, 
+.mask .question-title,
+.mask .headline-background .heading,
+.mask .comment-item {
     font-size: 40px !important;
 }
+
 .mask .view-more a {
     height: 65px !important;
     line-height: 65px !important;
 }
 
+div[data-bb-type="action"] img {
+    vertical-align: baseline;
+}
+
+.content_head_img {
+    position: relative;
+    width: 100%;
+    height: 600px;
+    background-color: pink;
+    background-repeat: no-repeat !important;
+    background-position-x: center !important;
+    background-size: 100% !important;
+    -webkit-animation: linear content_head_img_ani 30s infinite;
+}
+
+.content_head_img .img_source {
+    position: absolute;
+    font-size: 30px;
+    color: #fff;
+    bottom: 10px;
+    right: 10px;
+}
+
+@-webkit-keyframes content_head_img_ani {
+    0% {
+        background-position-y: center;
+    }
+    25% {
+        background-position-y: bottom;
+    }
+    50% {
+        background-position-y: center;
+    }
+    75% {
+        background-position-y: top;
+    }
+    100% {
+        background-position-y: center;
+    }
+}
+
+.comments_info {
+    position: absolute;
+    bottom: -190px;
+    left: 20px;
+}
+
+.comments_info div {
+    height: 60px;
+    line-height: 60px;
+    font-size: 30px;
+    color: #515151;
+}
+
+.comments_info div img {
+    height: 40px;
+    margin-bottom: 10px;
+    display: inline-block;
+}
 /*news 文字字体调整 end */

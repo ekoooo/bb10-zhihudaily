@@ -129,6 +129,9 @@ var ZhihuDailyDate = {
     getNewsObj: function(id) {
         return this.ajaxGet(this.getAPIURL(APIs.news, id));
     },
+    getCommentsObj: function(id) {
+        return this.ajaxGet(this.getAPIURL(APIs['story-extra'], id));
+    },
     /**
      * ajax get 同步获取信息
      */
@@ -347,18 +350,52 @@ var ZhihuDaily = {
         this.addMask();
 
         var data = ZhihuDailyDate.getNewsObj(id);
-        var cssLen = data.css.length;
+        var commentsdata = ZhihuDailyDate.getCommentsObj(id);
+        var cssLen = data.css.length, jsLen = data.js.length;
 
+        if(data.type !== 0) {
+            $('.mask .title').html('无法查看此类型文章内容, 待更新...');
+            return;
+        }
         if(cssLen > 0) {
             for (var i = 0; i < cssLen; i++) {
                 $('.mask').prepend($('<link rel="stylesheet" type="text/css" href="' + data.css[i] + '" />'));
             }
         }
-        $('.mask .content_box').html(data.body);
+        if(jsLen > 0) {
+            for (var i = 0; i < jsLen; i++) {
+                $('.mask').prepend($('<script type="text/javascript" src="' + data.js[i] + '"></script>'));
+            }
+        }
+
+        var imgTpl = '<div class="content_head_img">' + 
+                '    <div class="img_source">来源: ' + data.image_source + '</div>' + 
+                '    <div class="comments_info">' + 
+                '        <div>' + 
+                '            <img src="img/stories_popularity.png">' + 
+                '            <span>点赞数: ' + commentsdata.popularity + '</span>' + 
+                '        </div>' + 
+                '        <div>' + 
+                '            <img src="img/stories_long_commets.png">' + 
+                '            <span>长评数: ' + commentsdata.long_comments + '</span>' + 
+                '        </div>' + 
+                '        <div>' + 
+                '            <img src="img/stories_short_commets.png">' + 
+                '            <span>短评数: ' + commentsdata.short_comments + '</span>' + 
+                '        </div>' + 
+                '    </div>' + 
+                '</div>';
+
+        $('.mask .content_box').html(data.body).prepend($(imgTpl).css({
+            background: 'url(' + data.image + ')'
+        }));
         $('.mask .title').html(data.title);
 
         this.link2Blank();
     },
+    /**
+     * 在当前 screen 中加入弹出层
+     */
     addMask: function() {
         $(bb.screen.currentScreen).append($('<div class="mask">' +
             '    <div class="head">' +
@@ -367,6 +404,8 @@ var ZhihuDaily = {
             '    </div>' +
             '    <div class="content_box"></div>' +
             '</div>'));
+
+        $('.mask').fadeIn();
     },
     link2Blank: function() {
         $('.content_box a').attr('target', '_blank');
