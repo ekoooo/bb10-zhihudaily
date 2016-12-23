@@ -278,10 +278,10 @@ h1 {
 /*弹出遮罩 end*/
 
 
-/*news 文字字体调整 start */
-.mask .meta, 
-.mask .content, 
-.mask .view-more a, 
+/*news start */
+.mask .meta,
+.mask .content,
+.mask .view-more a,
 .mask .question-title,
 .mask .headline-background .heading,
 .mask .comment-item {
@@ -352,4 +352,25 @@ div[data-bb-type="action"] img {
     margin-bottom: 10px;
     display: inline-block;
 }
-/*news 文字字体调整 end */
+/*news end */
+
+/*img zoom start */
+#view_img_box {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.5);
+    z-index: 99;
+}
+
+#view_img_box img {
+    max-width: 90%;
+    max-height: 100%;
+    min-width: 80%;
+}
+/*img zoom end */

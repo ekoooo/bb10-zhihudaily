@@ -44,6 +44,11 @@ var App = {
         $(document).on('click', '.stories a[data-id]', function(e) {
             ZhihuDaily.viewNews($(e.currentTarget).attr('data-id'));
         });
+
+        // 新闻中图片点击放大
+        $(document).on('click', '.content_box img', function(e) {
+            BBUtil.initImgZoom($(e.currentTarget).attr('src'));
+        });
     }
 };
 
@@ -476,5 +481,11 @@ var BBUtil = {
                 title : "Network Connection Required"
             }
         );
+    },
+    initImgZoom: function(url) {
+        $('.mask').append($('<div id="view_img_box"><img src="' + url + '"></div>')
+            .on('click', function() {
+                $(this).remove();
+        }));
     }
 }
