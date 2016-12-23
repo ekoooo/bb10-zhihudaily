@@ -90,9 +90,21 @@ h1 {
     -webkit-animation:fade 3000ms infinite;
 }
 
-
-
-
+/*@media only screen and (max-width: 1920px) and (min-width: 720px) { body{ font-size: 20px !important; }.viewport{max-width: 720px;}}
+@media only screen and (max-width: 719px) and (min-width:690px) { body{ font-size: 19.4444px !important; }.viewport{max-width: 700px;}}
+@media only screen and (max-width: 689px) and (min-width:660px) { body{ font-size: 18.6331px !important; }.viewport{max-width: 689px;}}
+@media only screen and (max-width: 659px) and (min-width:630px) { body{ font-size: 17.8217px !important; }.viewport{max-width: 659px;}}
+@media only screen and (max-width: 629px) and (min-width:600px) { body{ font-size: 17.0103px !important; }.viewport{max-width: 629px;}}
+@media only screen and (max-width: 599px) and (min-width:570px) { body{ font-size: 16.1989px !important; }.viewport{max-width: 599px;}}
+@media only screen and (max-width: 569px) and (min-width:540px) { body{ font-size: 15.3876px !important; }.viewport{max-width: 569px;}}
+@media only screen and (max-width: 539px) and (min-width:510px) { body{ font-size: 14.5763px !important; }.viewport{max-width: 539px;}}
+@media only screen and (max-width: 509px) and (min-width:480px) { body{ font-size: 13.7650px !important; }.viewport{max-width: 509px;}}
+@media only screen and (max-width: 479px) and (min-width:450px) { body{ font-size: 12.9537px !important; }.viewport{max-width: 479px;}}
+@media only screen and (max-width: 449px) and (min-width:420px) { body{ font-size: 12.1424px !important; }.viewport{max-width: 449px;}}
+@media only screen and (max-width: 419px) and (min-width:390px) { body{ font-size: 11.3311px !important; }.viewport{max-width: 419px;}}
+@media only screen and (max-width: 389px) and (min-width:360px) { body{ font-size: 10.5189px !important; }.viewport{max-width: 389px;}}
+@media only screen and (max-width: 359px) and (min-width:330px) { body{ font-size: 9.7067px !important; }.viewport{max-width: 359px;}}
+@media only screen and (max-width: 329px) and (min-width:250px) { body{ font-size: 8.8955px !important; }.viewport{min-width: 320px;}}*/
 
 /*主页 start*/
 .stories {
@@ -134,6 +146,7 @@ h1 {
     align-content: center;
     flex: 1;
     font-size: 45px;
+    overflow: hidden;
 }
 
 .stories_ico {
