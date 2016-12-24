@@ -530,8 +530,12 @@ var ImgSlider = {
         isMove: false
     },
     init: function() {
-        this.paras.sliderUl = $('#img_slider ul');
-        this.paras.sliderLi = $('#img_slider ul li');
+        this.paras.sliderUl = $('#img_slider ul').css({
+            width: (100 * len) + '%'
+        });
+        this.paras.sliderLi = $('#img_slider ul li').css({
+            width: (100 / len) + '%'
+        });
         this.paras.sliderA = $('#img_slider div a');
         this.addLisnter(this);
     },
@@ -546,18 +550,10 @@ var ImgSlider = {
                 return;
             }
 
-            thiz.paras.sliderUl
-            .css({
-                width: (100 * len) + '%'
-            })
-            .animate({
+            thiz.paras.sliderUl.animate({
                 marginLeft: (nextIndex * -100) + '%'
             });
-            thiz.paras.sliderLi
-            .css({
-                width: (100 / len) + '%'
-            })
-            .removeClass('active');
+            thiz.paras.sliderLi.removeClass('active');
             thiz.paras.sliderLi.eq(nextIndex).addClass('active');
             thiz.paras.sliderA.removeClass('active');
             thiz.paras.sliderA.eq(nextIndex).addClass('active');
