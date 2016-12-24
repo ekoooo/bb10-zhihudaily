@@ -4,6 +4,7 @@
     <name>知乎日报</name>
     <description>webworks 版本知乎日报</description>
     <author email="954408050@qq.com" href="ekoo.tech">liuwanlin</author>
+    <icon src="img/logo.png" />
     <content src="index.html" />
     <access origin="*" />
     <access origin="http://zhihu.com" subdomains="true" />

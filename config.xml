@@ -1,9 +1,10 @@
-<widget id="tech.lwl.zhihudaily" version="0.0.1" 
-  xmlns="http://www.w3.org/ns/widgets" 
+<widget id="tech.lwl.zhihudaily" version="0.0.1"
+  xmlns="http://www.w3.org/ns/widgets"
   xmlns:cdv="http://cordova.apache.org/ns/1.0">
   <name>知乎日报</name>
   <description>webworks 版本知乎日报</description>
   <author email="954408050@qq.com" href="ekoo.tech">liuwanlin</author>
+  <icon src="img/logo.png"/>
   <content src="index.html"/>
   <access origin="*"/>
   <access origin="http://zhihu.com" subdomains="true"/>

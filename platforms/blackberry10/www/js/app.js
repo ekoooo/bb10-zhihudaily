@@ -150,9 +150,15 @@ var ZhihuDailyDate = {
         return this.ajaxGet(this.getAPIURL(APIs['theme'], id));
     },
     getBeforeSectionObj: function(id, timestamp) {
+        if(!this.checkParams(id, timestamp)) {
+            return {};
+        }
         return this.ajaxGet(this.getAPIURL(APIs['before_section'], timestamp).replace('#{id}', id));
     },
     getBeforeThemeObj: function(id, timestamp) {
+        if(!this.checkParams(id, timestamp)) {
+            return {};
+        }
         return this.ajaxGet(this.getAPIURL(APIs['before_theme'], timestamp).replace('#{id}', id));
     },
     getLatestNewsObj: function() {
@@ -166,6 +172,15 @@ var ZhihuDailyDate = {
     },
     getSectionsObj: function() {
         return this.ajaxGet(APIs.sections);
+    },
+    checkParams: function() {
+        arguments = Array.prototype.slice.call(arguments);
+        for (var i = 0, len = arguments.length; i < len; i++) {
+            if(arguments[i]) {
+                return false;
+            }
+        }
+        return true;
     },
     /**
      * ajax get 同步获取信息
@@ -251,18 +266,24 @@ var ZhihuDaily = {
         }
         else if('sections' === type) {
             storiesListDom.attr('data-date', storiesObj.timestamp);
-            storiesObj = storiesObj.stories;
-            len = storiesObj.length;
-
-            for (var i = 0; i < len; i++) {
-                item = storiesObj[i];
-                tempLi = $(liTpl);
-                tempLi.find('a').attr('data-id', item.id);
-                tempLi.find('.stories_desc').text(item.display_date + '，' + item.title);
-                tempLi.find('.stories_ico').css({
-                    background: 'url(' + item.images[0] + ')'
-                });
-                storiesListDom.append(tempLi);
+            var stories = storiesObj.stories;
+            if(!stories || !stories.length) {
+                if(!$(document.querySelector('.stories_list:last-child')).attr('data-date')) {
+                    return;
+                }
+                storiesListDom.find('.stories_date').text('已加载全部消息...');
+            }else {
+                len = stories.length;
+                for (var i = 0; i < len; i++) {
+                    item = stories[i];
+                    tempLi = $(liTpl);
+                    tempLi.find('a').attr('data-id', item.id);
+                    tempLi.find('.stories_desc').text(item.display_date + '，' + item.title);
+                    tempLi.find('.stories_ico').css({
+                        background: 'url(' + item.images[0] + ')'
+                    });
+                    storiesListDom.append(tempLi);
+                }
             }
         }
         else if('themes' === type) {
@@ -375,6 +396,12 @@ var ZhihuDaily = {
         this.appendNews2Stories(rs, rs.name, type);
         // 用于判断滚动位置
         stories.parent().parent().addClass('stories_box');
+        // 判断最新消息时候可以触发滚动事件, 如果不可以多加载一天消息
+        window.setTimeout(function() {
+            if(this.isStoriesKeepLoading()) {
+                this.appendNextSectionsThemes($(document.querySelector('.stories_list:last-child')).attr('data-date'), id, type);
+            }
+        }.bind(this), 200);
 
         this.is_reading = false;
         this.removeLoading();
