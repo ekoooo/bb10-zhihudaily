@@ -539,16 +539,25 @@ var ImgSlider = {
         $('#img_slider a').on('swipeLeft swipeRight', function(e) {
             var index = thiz.paras.sliderUl.find('li.active').index();
             var nextIndex = e.type === 'swipeLeft' ? index + 1 : index - 1;
+            var len = thiz.paras.sliderLi.length;
 
-            if(nextIndex < 0 || nextIndex > thiz.paras.sliderLi.length - 1) {
+            if(nextIndex < 0 || nextIndex > len - 1) {
                 thiz.paras.isMove = false;
                 return;
             }
 
-            thiz.paras.sliderUl.animate({
+            thiz.paras.sliderUl
+            .css({
+                width: (100 * len) + '%'
+            })
+            .animate({
                 marginLeft: (nextIndex * -100) + '%'
             });
-            thiz.paras.sliderLi.removeClass('active');
+            thiz.paras.sliderLi
+            .css({
+                width: (100 / len) + '%'
+            })
+            .removeClass('active');
             thiz.paras.sliderLi.eq(nextIndex).addClass('active');
             thiz.paras.sliderA.removeClass('active');
             thiz.paras.sliderA.eq(nextIndex).addClass('active');
