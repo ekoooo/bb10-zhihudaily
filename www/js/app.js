@@ -254,11 +254,40 @@ var ZhihuDaily = {
      */
     initLatestPage: function() {
         this.showLoading();
+        var newsObj = ZhihuDailyDate.getLatestNewsObj();
 
-        this.appendNews2Stories(ZhihuDailyDate.getLatestNewsObj().stories);
+        // top 消息填充
+        var topNewsObj = newsObj.top_stories, topNewsLen = topNewsObj.length;
+        var liTpl = '<li>' + 
+            '    <a href="javascript:void(0);"><p></p></a>' + 
+            '</li>',
+            aTpl = '<a href="javascript:void(0);"></a>',
+            imgSliderTpl = $('<div><ul></ul><div></div></div>').attr('id', 'img_slider');
+
+        for (var i = 0; i < topNewsLen; i++) {
+            var item = topNewsObj[i], 
+                li = $(liTpl), 
+                a = $(aTpl);
+
+            if(i === 0) {
+                li.addClass('active');
+                a.addClass('active');
+            }
+            li.css({
+                background: 'url(' + item.image + ')'
+            })
+            .find('a').attr('data-id', item.id)
+            .find('p').text(item.title);
+
+            imgSliderTpl.find('ul').append(li);
+            imgSliderTpl.find('div').append(a);
+        }
+        $('.stories').prepend(imgSliderTpl);
+        ImgSlider.init();
+
+        this.appendNews2Stories(newsObj.stories);
         // 用于判断滚动位置
         $('.stories').parent().parent().addClass('stories_box');
-
         // 判断最新消息时候可以触发滚动事件, 如果不可以多加载一天消息
         window.setTimeout(function() {
             if(this.isStoriesKeepLoading()) {
@@ -489,3 +518,58 @@ var BBUtil = {
         }));
     }
 }
+
+var ImgSlider = {
+    paras: {
+        startX: 0,
+        startMarginL: 0, 
+        sliderUl: $('#img_slider ul'), 
+        sliderLi: $('#img_slider ul li'), 
+        sliderA: $('#img_slider div a'), 
+        sliding: false,
+        isMove: false
+    },
+    init: function() {
+        this.addLisnter(this);
+    },
+    addLisnter: function(thiz) {
+        $('#img_slider a').on('swipeLeft swipeRight', function(e) {
+            var index = thiz.paras.sliderUl.find('li.active').index();
+            var nextIndex = e.type === 'swipeLeft' ? index + 1 : index - 1;
+
+            if(nextIndex < 0 || nextIndex > thiz.paras.sliderLi.length - 1) {
+                thiz.paras.isMove = false;
+                return;
+            }
+
+            thiz.paras.sliderUl.animate({
+                marginLeft: (nextIndex * -100) + '%'
+            });
+            thiz.paras.sliderLi.removeClass('active');
+            thiz.paras.sliderLi.eq(nextIndex).addClass('active');
+            thiz.paras.sliderA.removeClass('active');
+            thiz.paras.sliderA.eq(nextIndex).addClass('active');
+
+            thiz.paras.isMove = true;
+        }).on('touchstart', function(e) {
+            thiz.paras.startX = e.touches[0].pageX;
+            thiz.paras.startMarginL = window.getComputedStyle(thiz.paras.sliderUl[0], null).marginLeft;
+            thiz.paras.isMove = false;
+        }).on('touchend', function(e) {
+            if(!thiz.paras.isMove && !thiz.paras.sliding) {
+                thiz.paras.sliding = true;
+                thiz.paras.sliderUl.animate({
+                    marginLeft: thiz.paras.startMarginL
+                }, function() {
+                    thiz.paras.sliding = false;
+                });
+            }
+        }).on('touchmove', function(e) {
+            if(!thiz.paras.sliding) {
+                thiz.paras.sliderUl.animate({
+                    marginLeft: Number(thiz.paras.startMarginL.replace('px', '')) + (e.touches[0].pageX - thiz.paras.startX)
+                });
+            }
+        });
+    }
+};
