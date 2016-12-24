@@ -4,8 +4,8 @@ var App = {
         this.attachEvent();
     },
     attachEvent: function() {
-        $(document).on('bb_ondomready', function(e, paras) {
-            switch (paras.id) {
+        $(document).on('bb_ondomready', function(e, obj) {
+            switch (obj.id) {
                 case 'latest':
                     ZhihuDaily.initLatestPage();
                     // 主页滚动监听
@@ -21,6 +21,14 @@ var App = {
                     break;
                 case 'hots':
                     ZhihuDaily.initHotsPage();
+                    break;
+                case 'sections_themes_list':
+                    ZhihuDaily.initSectionsThemesListPage(obj);
+                    // 主页滚动监听
+                    $('.stories_box').on('scroll', function(e) {
+                        ZhihuDaily.onStoriesScreenScroll(e);
+                    });
+                    ActionBarMgr.runing = false;
                     break;
                 default:
                     break;
@@ -48,6 +56,14 @@ var App = {
         // 新闻中图片点击放大
         $(document).on('click', '.content_box img', function(e) {
             BBUtil.initImgZoom($(e.currentTarget).attr('src'));
+        });
+
+        // 栏目/主题
+        $(document).on('click', '.sections_themes li a', function(e) {
+            ShowScreen.sections_themes_list({
+                "data-id": $(e.currentTarget).attr('data-id'),
+                "data-type": $('.sections_themes').attr('data-type')
+            });
         });
     }
 };
@@ -108,6 +124,8 @@ var APIs = {
     "long-comments" : "http://news-at.zhihu.com/api/4/story/#{para}/long-comments", // 新闻对应长评论
     "short-comments": "http://news-at.zhihu.com/api/4/story/#{para}/short-comments", // 新闻对应短评论
     "recommenders" : "http://news-at.zhihu.com/api/4/story/#{para}/recommenders", // 新闻的推荐者
+    "before_section": "http://news-at.zhihu.com/api/4/section/#{id}/before/#{para}",
+    "before_theme": "http://news-at.zhihu.com/api/4/theme/#{id}/before/#{para}",
 }
 
 var ZhihuDailyDate = {
@@ -117,7 +135,25 @@ var ZhihuDailyDate = {
      * @param  {[type]} date 当前日期
      */
     getBeforeNewsObj: function(date) {
-        return this.ajaxGet(this.getAPIURL(APIs.before, DateTools.getNextDateStr(date).replace(/-/g, '')));
+        return this.ajaxGet(this.getAPIURL(APIs['before'], DateTools.getNextDateStr(date).replace(/-/g, '')));
+    },
+    getNewsObj: function(id) {
+        return this.ajaxGet(this.getAPIURL(APIs['news'], id));
+    },
+    getCommentsObj: function(id) {
+        return this.ajaxGet(this.getAPIURL(APIs['story-extra'], id));
+    },
+    getSectionObj: function(id) {
+        return this.ajaxGet(this.getAPIURL(APIs['section'], id));
+    },
+    getThemeObj: function(id) {
+        return this.ajaxGet(this.getAPIURL(APIs['theme'], id));
+    },
+    getBeforeSectionObj: function(id, timestamp) {
+        return this.ajaxGet(this.getAPIURL(APIs['before_section'], timestamp).replace('#{id}', id));
+    },
+    getBeforeThemeObj: function(id, timestamp) {
+        return this.ajaxGet(this.getAPIURL(APIs['before_theme'], timestamp).replace('#{id}', id));
     },
     getLatestNewsObj: function() {
         return this.ajaxGet(APIs.latest);
@@ -130,12 +166,6 @@ var ZhihuDailyDate = {
     },
     getSectionsObj: function() {
         return this.ajaxGet(APIs.sections);
-    },
-    getNewsObj: function(id) {
-        return this.ajaxGet(this.getAPIURL(APIs.news, id));
-    },
-    getCommentsObj: function(id) {
-        return this.ajaxGet(this.getAPIURL(APIs['story-extra'], id));
     },
     /**
      * ajax get 同步获取信息
@@ -191,7 +221,7 @@ var ZhihuDaily = {
      * 加入消息至主页页面
      * @param  {[type]} date 显示日期 xxxx-xx-xx
      */
-    appendNews2Stories: function(storiesObj, date) {
+    appendNews2Stories: function(storiesObj, date, type) {
         if(!storiesObj) {
             return;
         }
@@ -207,7 +237,7 @@ var ZhihuDaily = {
             '</li>';
         var item, tempLi, len = storiesObj.length;
 
-        if('热门消息' === date) {
+        if('hots' === type) {
             for (var i = 0; i < len; i++) {
                 item = storiesObj[i];
                 tempLi = $(liTpl);
@@ -218,7 +248,24 @@ var ZhihuDaily = {
                 });
                 storiesListDom.append(tempLi);
             }
-        }else {
+        }
+        else if('sections' === type) {
+            storiesListDom.attr('data-date', storiesObj.timestamp);
+            storiesObj = storiesObj.stories;
+            len = storiesObj.length;
+
+            for (var i = 0; i < len; i++) {
+                item = storiesObj[i];
+                tempLi = $(liTpl);
+                tempLi.find('a').attr('data-id', item.id);
+                tempLi.find('.stories_desc').text(item.display_date + '，' + item.title);
+                tempLi.find('.stories_ico').css({
+                    background: 'url(' + item.images[0] + ')'
+                });
+                storiesListDom.append(tempLi);
+            }
+        }
+        else {
             for (var i = 0; i < len; i++) {
                 item = storiesObj[i];
                 tempLi = $(liTpl);
@@ -300,7 +347,7 @@ var ZhihuDaily = {
     initHotsPage: function() {
         this.showLoading();
 
-        this.appendNews2Stories(ZhihuDailyDate.getHotNewsObj().recent, '热门消息');
+        this.appendNews2Stories(ZhihuDailyDate.getHotNewsObj().recent, '今日热门', 'hots');
 
         this.removeLoading();
     },
@@ -309,6 +356,35 @@ var ZhihuDaily = {
     },
     initThemesPage: function() {
         this.initSectionsOrThemesPage('themes');
+    },
+    initSectionsThemesListPage: function(obj) {
+        this.showLoading();
+        this.is_reading = true;
+
+        var params = obj.params,
+            type = params['data-type'],
+            id = params['data-id'],
+            rs = 'sections' === type ? ZhihuDailyDate.getSectionObj(id) : ZhihuDailyDate.getThemeObj(id),
+            stories = $('.stories');
+
+        stories.attr('data-type', type);
+        stories.attr('data-id', id);
+        this.appendNews2Stories(rs, rs.name, type);
+        // 用于判断滚动位置
+        stories.parent().parent().addClass('stories_box');
+
+        this.is_reading = false;
+        this.removeLoading();
+    },
+    appendNextSectionsThemes: function(timestamp, id, type) {
+        this.showLoading();
+        this.is_reading = true;
+
+        var rs = 'sections' === type ? ZhihuDailyDate.getBeforeSectionObj(id, timestamp) : ZhihuDailyDate.getBeforeThemeObj(id, timestamp);
+        this.appendNews2Stories(rs, rs.name, type);
+
+        this.is_reading = false;
+        this.removeLoading();
     },
     /**
      * 初始化栏目或者主题总览
@@ -347,7 +423,7 @@ var ZhihuDaily = {
 
             ulDom.append(tempLi);
         }
-        $('.sections_themes').append(ulDom);
+        $('.sections_themes').append(ulDom).attr('data-type', type);
 
         bb.refresh();
         this.removeLoading();
@@ -360,7 +436,12 @@ var ZhihuDaily = {
         var topH = $('.stories_box').scrollTop();
         var contentH = $('.stories').height();
         if(boxH + topH + this.LOADING_RES_HEIGHT >= contentH && !this.is_reading) {
-            this.appendPreDayNews($(document.querySelector('.stories_list:last-child')).attr('data-date'));
+            var dataType = $('.stories').attr('data-type');
+            if(dataType === 'sections' || dataType === 'themes') {
+                this.appendNextSectionsThemes($(document.querySelector('.stories_list:last-child')).attr('data-date'), $('.stories').attr('data-id'), dataType);
+            }else {
+                this.appendPreDayNews($(document.querySelector('.stories_list:last-child')).attr('data-date'));
+            }
         }
     },
     showLoading: function() {
@@ -494,6 +575,10 @@ var ShowScreen = {
     hots: function() {
         ActionBarMgr.runing = true;
         bb.pushScreen('app.html', 'hots');
+    },
+    sections_themes_list: function(params) {
+        ActionBarMgr.runing = true;
+        bb.pushScreen('app.html', 'sections_themes_list', params);
     }
 }
 
@@ -521,7 +606,7 @@ var BBUtil = {
 
 var ImgSlider = {
     ITV_TIME: 10000, // 滚动间隔时间
-    paras: {
+    params: {
         startX: 0,
         startMarginL: 0,
         sliderUl: null,
@@ -532,16 +617,16 @@ var ImgSlider = {
         itv: null
     },
     init: function() {
-        this.paras.sliderUl = $('#img_slider ul');
-        this.paras.sliderLi = $('#img_slider ul li');
-        this.paras.sliderA = $('#img_slider div a');
+        this.params.sliderUl = $('#img_slider ul');
+        this.params.sliderLi = $('#img_slider ul li');
+        this.params.sliderA = $('#img_slider div a');
 
-        var len = this.paras.sliderLi.length;
+        var len = this.params.sliderLi.length;
 
-        this.paras.sliderUl.css({
+        this.params.sliderUl.css({
             width: (100 * len) + '%'
         });
-        this.paras.sliderLi.css({
+        this.params.sliderLi.css({
             width: (100 / len) + '%'
         });
 
@@ -549,14 +634,14 @@ var ImgSlider = {
         this.start();
     },
     start: function() {
-        this.paras.itv = window.setInterval(function() {
+        this.params.itv = window.setInterval(function() {
             if(0 === this.slide(1)) {
                 this.slide(null, '0');
             }
         }.bind(this), this.ITV_TIME);
     },
     stop: function() {
-        window.clearInterval(this.paras.itv);
+        window.clearInterval(this.params.itv);
     },
     addLisnter: function() {
         var thiz = this;
@@ -564,22 +649,22 @@ var ImgSlider = {
             thiz.slide(e.type === 'swipeLeft' ? 1 : 2);
         })
         .on('touchstart', function(e) {
-            thiz.paras.startX = e.touches[0].pageX;
-            thiz.paras.startMarginL = window.getComputedStyle(thiz.paras.sliderUl[0], null).marginLeft;
-            thiz.paras.isMove = false;
+            thiz.params.startX = e.touches[0].pageX;
+            thiz.params.startMarginL = window.getComputedStyle(thiz.params.sliderUl[0], null).marginLeft;
+            thiz.params.isMove = false;
         }).on('touchend', function(e) {
-            if(!thiz.paras.isMove && !thiz.paras.sliding) {
-                thiz.paras.sliding = true;
-                thiz.paras.sliderUl.animate({
-                    marginLeft: thiz.paras.startMarginL
+            if(!thiz.params.isMove && !thiz.params.sliding) {
+                thiz.params.sliding = true;
+                thiz.params.sliderUl.animate({
+                    marginLeft: thiz.params.startMarginL
                 }, 'linear', function() {
-                    thiz.paras.sliding = false;
+                    thiz.params.sliding = false;
                 });
             }
         }).on('touchmove', function(e) {
-            if(!thiz.paras.sliding) {
-                thiz.paras.sliderUl.css({
-                    marginLeft: Number(thiz.paras.startMarginL.replace('px', '')) + (e.touches[0].pageX - thiz.paras.startX)
+            if(!thiz.params.sliding) {
+                thiz.params.sliderUl.css({
+                    marginLeft: Number(thiz.params.startMarginL.replace('px', '')) + (e.touches[0].pageX - thiz.params.startX)
                 });
             }
         });
@@ -591,28 +676,28 @@ var ImgSlider = {
      * @return 0: 极限位置
      */
     slide: function(dir, nextIndex) {
-        var index = this.paras.sliderUl.find('li.active').index();
+        var index = this.params.sliderUl.find('li.active').index();
         nextIndex = nextIndex || (dir === 1 ? index + 1 : index - 1);
 
-        if(nextIndex < 0 || nextIndex > this.paras.sliderLi.length - 1) {
-            this.paras.isMove = false;
-            if(this.paras.sliderUl.sliding) {
+        if(nextIndex < 0 || nextIndex > this.params.sliderLi.length - 1) {
+            this.params.isMove = false;
+            if(this.params.sliderUl.sliding) {
                 return;
             }
             return 0;
         }
 
-        this.paras.sliderUl.sliding = true;
-        this.paras.sliderUl.animate({
+        this.params.sliderUl.sliding = true;
+        this.params.sliderUl.animate({
             marginLeft: (nextIndex * -100) + '%'
         }, 'linear', function() {
-            this.paras.sliderUl.sliding = false;
+            this.params.sliderUl.sliding = false;
         }.bind(this));
-        this.paras.sliderLi.removeClass('active');
-        this.paras.sliderLi.eq(nextIndex).addClass('active');
-        this.paras.sliderA.removeClass('active');
-        this.paras.sliderA.eq(nextIndex).addClass('active');
+        this.params.sliderLi.removeClass('active');
+        this.params.sliderLi.eq(nextIndex).addClass('active');
+        this.params.sliderA.removeClass('active');
+        this.params.sliderA.eq(nextIndex).addClass('active');
 
-        this.paras.isMove = true;
+        this.params.isMove = true;
     }
 };

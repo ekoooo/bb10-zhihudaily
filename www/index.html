@@ -27,11 +27,11 @@
                         listsDark : true,
                         highlightColor : '#00BFFF',
                         coloredTitleBar : true,
-                        onscreenready : function(element, id) {
-                            $(document).trigger('bb_onscreenready', {"element": element, "id": id});
+                        onscreenready : function(element, id, params) {
+                            $(document).trigger('bb_onscreenready', {"element": element, "id": id, "params": params});
                         },
-                        ondomready : function(element, id) {
-                            $(document).trigger('bb_ondomready', {"element": element, "id": id});
+                        ondomready : function(element, id, params) {
+                            $(document).trigger('bb_ondomready', {"element": element, "id": id, "params": params});
                         }
                     });
                 });
