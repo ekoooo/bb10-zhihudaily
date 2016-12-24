@@ -265,6 +265,9 @@ var ZhihuDaily = {
                 storiesListDom.append(tempLi);
             }
         }
+        else if('themes' === type) {
+            console.log(storiesObj)
+        }
         else {
             for (var i = 0; i < len; i++) {
                 item = storiesObj[i];
