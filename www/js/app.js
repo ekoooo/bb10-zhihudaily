@@ -258,15 +258,15 @@ var ZhihuDaily = {
 
         // top 消息填充
         var topNewsObj = newsObj.top_stories, topNewsLen = topNewsObj.length;
-        var liTpl = '<li>' + 
-            '    <a href="javascript:void(0);"><p></p></a>' + 
+        var liTpl = '<li>' +
+            '    <a href="javascript:void(0);"><p></p></a>' +
             '</li>',
             aTpl = '<a href="javascript:void(0);"></a>',
             imgSliderTpl = $('<div><ul></ul><div></div></div>').attr('id', 'img_slider');
 
         for (var i = 0; i < topNewsLen; i++) {
-            var item = topNewsObj[i], 
-                li = $(liTpl), 
+            var item = topNewsObj[i],
+                li = $(liTpl),
                 a = $(aTpl);
 
             if(i === 0) {
@@ -520,46 +520,50 @@ var BBUtil = {
 }
 
 var ImgSlider = {
+    ITV_TIME: 10000, // 滚动间隔时间
     paras: {
         startX: 0,
-        startMarginL: 0, 
-        sliderUl: null, 
-        sliderLi: null, 
-        sliderA: null, 
+        startMarginL: 0,
+        sliderUl: null,
+        sliderLi: null,
+        sliderA: null,
         sliding: false,
-        isMove: false
+        isMove: false,
+        itv: null
     },
     init: function() {
-        this.paras.sliderUl = $('#img_slider ul').css({
+        this.paras.sliderUl = $('#img_slider ul');
+        this.paras.sliderLi = $('#img_slider ul li');
+        this.paras.sliderA = $('#img_slider div a');
+
+        var len = this.paras.sliderLi.length;
+
+        this.paras.sliderUl.css({
             width: (100 * len) + '%'
         });
-        this.paras.sliderLi = $('#img_slider ul li').css({
+        this.paras.sliderLi.css({
             width: (100 / len) + '%'
         });
-        this.paras.sliderA = $('#img_slider div a');
-        this.addLisnter(this);
+
+        this.addLisnter();
+        this.start();
     },
-    addLisnter: function(thiz) {
-        $('#img_slider a').on('swipeLeft swipeRight', function(e) {
-            var index = thiz.paras.sliderUl.find('li.active').index();
-            var nextIndex = e.type === 'swipeLeft' ? index + 1 : index - 1;
-            var len = thiz.paras.sliderLi.length;
-
-            if(nextIndex < 0 || nextIndex > len - 1) {
-                thiz.paras.isMove = false;
-                return;
+    start: function() {
+        this.paras.itv = window.setInterval(function() {
+            if(0 === this.slide(1)) {
+                this.slide(null, '0');
             }
-
-            thiz.paras.sliderUl.animate({
-                marginLeft: (nextIndex * -100) + '%'
-            });
-            thiz.paras.sliderLi.removeClass('active');
-            thiz.paras.sliderLi.eq(nextIndex).addClass('active');
-            thiz.paras.sliderA.removeClass('active');
-            thiz.paras.sliderA.eq(nextIndex).addClass('active');
-
-            thiz.paras.isMove = true;
-        }).on('touchstart', function(e) {
+        }.bind(this), this.ITV_TIME);
+    },
+    stop: function() {
+        window.clearInterval(this.paras.itv);
+    },
+    addLisnter: function() {
+        var thiz = this;
+        $('#img_slider a').on('swipeLeft swipeRight', function(e) {
+            thiz.slide(e.type === 'swipeLeft' ? 1 : 2);
+        })
+        .on('touchstart', function(e) {
             thiz.paras.startX = e.touches[0].pageX;
             thiz.paras.startMarginL = window.getComputedStyle(thiz.paras.sliderUl[0], null).marginLeft;
             thiz.paras.isMove = false;
@@ -568,16 +572,47 @@ var ImgSlider = {
                 thiz.paras.sliding = true;
                 thiz.paras.sliderUl.animate({
                     marginLeft: thiz.paras.startMarginL
-                }, function() {
+                }, 'linear', function() {
                     thiz.paras.sliding = false;
                 });
             }
         }).on('touchmove', function(e) {
             if(!thiz.paras.sliding) {
-                thiz.paras.sliderUl.animate({
+                thiz.paras.sliderUl.css({
                     marginLeft: Number(thiz.paras.startMarginL.replace('px', '')) + (e.touches[0].pageX - thiz.paras.startX)
                 });
             }
         });
+    },
+    /**
+     * 翻动
+     * @param dir 1: next, 2: pre
+     * @nextIndex 要翻动到的位置
+     * @return 0: 极限位置
+     */
+    slide: function(dir, nextIndex) {
+        var index = this.paras.sliderUl.find('li.active').index();
+        nextIndex = nextIndex || (dir === 1 ? index + 1 : index - 1);
+
+        if(nextIndex < 0 || nextIndex > this.paras.sliderLi.length - 1) {
+            this.paras.isMove = false;
+            if(this.paras.sliderUl.sliding) {
+                return;
+            }
+            return 0;
+        }
+
+        this.paras.sliderUl.sliding = true;
+        this.paras.sliderUl.animate({
+            marginLeft: (nextIndex * -100) + '%'
+        }, 'linear', function() {
+            this.paras.sliderUl.sliding = false;
+        }.bind(this));
+        this.paras.sliderLi.removeClass('active');
+        this.paras.sliderLi.eq(nextIndex).addClass('active');
+        this.paras.sliderA.removeClass('active');
+        this.paras.sliderA.eq(nextIndex).addClass('active');
+
+        this.paras.isMove = true;
     }
 };
