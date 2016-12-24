@@ -207,6 +207,7 @@ h1 {
 #img_slider ul {
     height: 100%;
     width: 500%;
+    padding: 0;
 }
 
 #img_slider ul li {

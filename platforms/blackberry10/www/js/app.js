@@ -523,17 +523,22 @@ var ImgSlider = {
     paras: {
         startX: 0,
         startMarginL: 0, 
-        sliderUl: $('#img_slider ul'), 
-        sliderLi: $('#img_slider ul li'), 
-        sliderA: $('#img_slider div a'), 
+        sliderUl: null, 
+        sliderLi: null, 
+        sliderA: null, 
         sliding: false,
         isMove: false
     },
     init: function() {
+        this.paras.sliderUl = $('#img_slider ul');
+        this.paras.sliderLi = $('#img_slider ul li');
+        this.paras.sliderA = $('#img_slider div a');
         this.addLisnter(this);
     },
     addLisnter: function(thiz) {
         $('#img_slider a').on('swipeLeft swipeRight', function(e) {
+            console.log(e.type)
+
             var index = thiz.paras.sliderUl.find('li.active').index();
             var nextIndex = e.type === 'swipeLeft' ? index + 1 : index - 1;
 
@@ -553,6 +558,10 @@ var ImgSlider = {
             thiz.paras.isMove = true;
         }).on('touchstart', function(e) {
             thiz.paras.startX = e.touches[0].pageX;
+
+            console.log(window.getComputedStyle)
+            console.log(thiz.paras.sliderUl[0])
+
             thiz.paras.startMarginL = window.getComputedStyle(thiz.paras.sliderUl[0], null).marginLeft;
             thiz.paras.isMove = false;
         }).on('touchend', function(e) {
