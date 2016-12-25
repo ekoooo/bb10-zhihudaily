@@ -5,6 +5,9 @@ var App = {
     },
     attachEvent: function() {
         $(document).on('bb_ondomready', function(e, obj) {
+            // 在当前 screen 中设置当前 id, 因为一个模板多个地方使用, 需要一个标志
+            $(bb.screen.currentScreen).attr('data-screen-flag', obj.id);
+
             switch (obj.id) {
                 case 'latest':
                     ZhihuDaily.initLatestPage();
@@ -176,7 +179,7 @@ var ZhihuDailyDate = {
     checkParams: function() {
         arguments = Array.prototype.slice.call(arguments);
         for (var i = 0, len = arguments.length; i < len; i++) {
-            if(arguments[i]) {
+            if(typeof arguments[i] === 'undefined') {
                 return false;
             }
         }
@@ -264,9 +267,11 @@ var ZhihuDaily = {
                 storiesListDom.append(tempLi);
             }
         }
-        else if('sections' === type) {
-            storiesListDom.attr('data-date', storiesObj.timestamp);
+        else if('sections' === type || 'themes' === type) {
+            var isThemes = 'themes' === type;
             var stories = storiesObj.stories;
+            storiesListDom.attr('data-date', isThemes ? stories[stories.length - 1].id : storiesObj.timestamp);
+
             if(!stories || !stories.length) {
                 if(!$(document.querySelector('.stories_list:last-child')).attr('data-date')) {
                     return;
@@ -278,16 +283,15 @@ var ZhihuDaily = {
                     item = stories[i];
                     tempLi = $(liTpl);
                     tempLi.find('a').attr('data-id', item.id);
-                    tempLi.find('.stories_desc').text(item.display_date + '，' + item.title);
-                    tempLi.find('.stories_ico').css({
-                        background: 'url(' + item.images[0] + ')'
-                    });
+                    tempLi.find('.stories_desc').text((isThemes ? '' : (item.display_date + '，')) + item.title);
+                    if(item.images && item.images[0]) {
+                        tempLi.find('.stories_ico').css({
+                            background: 'url(' + item.images[0] + ')'
+                        });
+                    }
                     storiesListDom.append(tempLi);
                 }
             }
-        }
-        else if('themes' === type) {
-            console.log(storiesObj)
         }
         else {
             for (var i = 0; i < len; i++) {
@@ -393,6 +397,25 @@ var ZhihuDaily = {
 
         stories.attr('data-type', type);
         stories.attr('data-id', id);
+
+        // 如果是主题这需要再上方添加图片和编辑
+        if('themes' === type) {
+            var infoDoms = $('<div class="content_head_img" style="background: url(' + rs.background + ')">' +
+                '    <div class="img_source">来源: ' + rs.image_source + '</div>' +
+                '    <div class="img_description">' + rs.description + '</div>' +
+                '</div>' +
+                '<div class="stories_editors">' +
+                '    <ul></ul>' +
+                '</div>');
+            var ul = infoDoms.find('.stories_editors ul'), item;
+            for (var i = 0, len = rs.editors.length; i < len; i++) {
+                item = rs.editors[i];
+                // item.bio 简介
+                ul.append($('<li><a target="_blank" href="' + (item.url || 'javascript:void(0);') + '"><img src="' + item.avatar + '"><p>' + (item.name || 'item.bio') + '</p></a></li>'));
+            }
+            stories.prepend(infoDoms)
+        }
+
         this.appendNews2Stories(rs, rs.name, type);
         // 用于判断滚动位置
         stories.parent().parent().addClass('stories_box');
@@ -411,7 +434,7 @@ var ZhihuDaily = {
         this.is_reading = true;
 
         var rs = 'sections' === type ? ZhihuDailyDate.getBeforeSectionObj(id, timestamp) : ZhihuDailyDate.getBeforeThemeObj(id, timestamp);
-        this.appendNews2Stories(rs, rs.name, type);
+        this.appendNews2Stories(rs, rs.name || $(document.querySelector('.stories_list .stories_date')).text(), type);
 
         this.is_reading = false;
         this.removeLoading();
@@ -531,9 +554,22 @@ var ZhihuDaily = {
                 '    </div>' +
                 '</div>';
 
-        $('.mask .content_box').html(data.body).prepend($(imgTpl).css({
-            background: 'url(' + data.image + ')'
-        }));
+        var cb = $('.mask .content_box').html(data.body);
+        if(data.image) {
+            cb.prepend($(imgTpl).css({
+                background: 'url(' + data.image + ')'
+            }));
+        }else {
+            cb.prepend($('<div></div>').css({
+                height: '180px',
+                position: 'relative'
+            })
+            .append($(imgTpl).find('.comments_info').css({
+                bottom: 0,
+                top: 0
+            })));
+        }
+
         $('.mask .title').html(data.title);
 
         this.link2Blank();
