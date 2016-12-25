@@ -15,9 +15,7 @@
 新闻的推荐者:           http://news-at.zhihu.com/api/4/story/#{id}/recommenders
 
 
-http://news-at.zhihu.com/api/4/section/2/before/1478386798  2016-11-06 06:59:58
-http://news-at.zhihu.com/api/4/section/2/before/1480114798  2016-11-26 06:59:58
-http://news-at.zhihu.com/api/4/section/2/before/1476658798  2016-10-17 06:59:58
+http://news-at.zhihu.com/api/4/#{section|theme}/#{id}/before/#{timestamp|last_id}  2016-11-06 06:59:58
 
 
 
