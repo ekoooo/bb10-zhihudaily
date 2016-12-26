@@ -68,6 +68,13 @@ var App = {
                 "data-type": $('.sections_themes').attr('data-type')
             });
         });
+
+        // 点击看评论
+        $(document).on('click', '.comments_info', function(e) {
+            ZhihuDaily.addMask('comments_mask');
+            $('.comments_mask .title').append($('<div class="show_long_comments_btn show_comments_btn active">短评论</div><div class="show_short_comments_btn show_comments_btn">长评论</div>'));
+            ZhihuDaily.viewComments($(e.currentTarget).attr('data-id'));
+        });
     }
 };
 
@@ -111,6 +118,19 @@ var DateTools = {
         var m = date.getMonth() + 1;
         var d = date.getDate();
         return date.getFullYear() + '-' + (m < 10 ? '0' + m : m) + '-' + (d < 10 ? '0' + d : d);
+    },
+    getTime: function(date) {
+        var d = this.getDate(date);
+
+        var h = date.getHours();
+        var m = date.getMinutes();
+        var s = date.getSeconds();
+
+        h = h < 10 ? '0' + h : h;
+        m = m < 10 ? '0' + m : m;
+        s = s < 10 ? '0' + s : s;
+
+        return d + ' ' + h + ':' + m + ':' + s;
     }
 };
 
@@ -129,9 +149,13 @@ var APIs = {
     "recommenders" : "http://news-at.zhihu.com/api/4/story/#{para}/recommenders", // 新闻的推荐者
     "before_section": "http://news-at.zhihu.com/api/4/section/#{id}/before/#{para}",
     "before_theme": "http://news-at.zhihu.com/api/4/theme/#{id}/before/#{para}",
+    "long_comments_list": "http://news-at.zhihu.com/api/4/story/#{para}/long-comments", // 长评论信息
+    "long_comments_list_m": "http://news-at.zhihu.com/api/4/story/#{para}/long-comments/before/#{id}", // #{id} 最后一天评论信息 id
+    "short_comments_list": "http://news-at.zhihu.com/api/4/story/#{para}/short-comments",
+    "short_comments_list_m": "http://news-at.zhihu.com/api/4/story/#{para}/short-comments/before/#{id}"
 }
 
-var ZhihuDailyDate = {
+var ZhihuDailyData = {
     AJAX_GET_TIME_OUT: 5000, // ajax 请求过期时间
     /**
      * 获取 '过往消息' 消息信息, 这个方法将调整 api 中获取的是上一天消息的问题
@@ -176,6 +200,20 @@ var ZhihuDailyDate = {
     getSectionsObj: function() {
         return this.ajaxGet(APIs.sections);
     },
+    getLongCommentsList: function(id, lastId) {
+        if(lastId) { // 如果传入最后一个 id 则为加载更多
+            return this.ajaxGet(this.getAPIURL(APIs['long_comments_list_m'], id).replace('#{id}', lastId));
+        }else {
+            return this.ajaxGet(this.getAPIURL(APIs['long_comments_list'], id));
+        }
+    },
+    getShortCommentsList: function(id, lastId) {
+        if(lastId) { // 如果传入最后一个 id 则为加载更多
+            return this.ajaxGet(this.getAPIURL(APIs['short_comments_list_m'], id).replace('#{id}', lastId));
+        }else {
+            return this.ajaxGet(this.getAPIURL(APIs['short_comments_list'], id));
+        }
+    },
     checkParams: function() {
         arguments = Array.prototype.slice.call(arguments);
         for (var i = 0, len = arguments.length; i < len; i++) {
@@ -205,10 +243,11 @@ var ZhihuDailyDate = {
             dataType: 'json',
             timeout: this.AJAX_GET_TIME_OUT,
             success: function(data) {
+                console.log(url, 'success');
                 rs = data;
             },
             error: function(xhr, type) {
-                console.log(xhr, type);
+                console.log(url, xhr, type, 'error');
                 // 如果失败则移除 loading
                 ZhihuDaily.removeLoading();
             }
@@ -319,7 +358,7 @@ var ZhihuDaily = {
         this.is_reading = true;
 
         var preDate = DateTools.getPreDateStr(crtDate);
-        this.appendNews2Stories(ZhihuDailyDate.getBeforeNewsObj(preDate).stories, preDate);
+        this.appendNews2Stories(ZhihuDailyData.getBeforeNewsObj(preDate).stories, preDate);
 
         this.is_reading = false;
         this.removeLoading();
@@ -329,7 +368,7 @@ var ZhihuDaily = {
      */
     initLatestPage: function() {
         this.showLoading();
-        var newsObj = ZhihuDailyDate.getLatestNewsObj();
+        var newsObj = ZhihuDailyData.getLatestNewsObj();
 
         // top 消息填充
         var topNewsObj = newsObj.top_stories, topNewsLen = topNewsObj.length;
@@ -375,7 +414,7 @@ var ZhihuDaily = {
     initHotsPage: function() {
         this.showLoading();
 
-        this.appendNews2Stories(ZhihuDailyDate.getHotNewsObj().recent, '今日热门', 'hots');
+        this.appendNews2Stories(ZhihuDailyData.getHotNewsObj().recent, '今日热门', 'hots');
 
         this.removeLoading();
     },
@@ -392,7 +431,7 @@ var ZhihuDaily = {
         var params = obj.params,
             type = params['data-type'],
             id = params['data-id'],
-            rs = 'sections' === type ? ZhihuDailyDate.getSectionObj(id) : ZhihuDailyDate.getThemeObj(id),
+            rs = 'sections' === type ? ZhihuDailyData.getSectionObj(id) : ZhihuDailyData.getThemeObj(id),
             stories = $('.stories');
 
         stories.attr('data-type', type);
@@ -433,7 +472,7 @@ var ZhihuDaily = {
         this.showLoading();
         this.is_reading = true;
 
-        var rs = 'sections' === type ? ZhihuDailyDate.getBeforeSectionObj(id, timestamp) : ZhihuDailyDate.getBeforeThemeObj(id, timestamp);
+        var rs = 'sections' === type ? ZhihuDailyData.getBeforeSectionObj(id, timestamp) : ZhihuDailyData.getBeforeThemeObj(id, timestamp);
         this.appendNews2Stories(rs, rs.name || $(document.querySelector('.stories_list .stories_date')).text(), type);
 
         this.is_reading = false;
@@ -455,9 +494,9 @@ var ZhihuDaily = {
             '</li>';
         var rs = null;
         if('themes' === type) {
-            rs = ZhihuDailyDate.getThemesObj().others;
+            rs = ZhihuDailyData.getThemesObj().others;
         }else {
-            rs = ZhihuDailyDate.getSectionsObj().data;
+            rs = ZhihuDailyData.getSectionsObj().data;
         }
         if(!rs) {
             return;
@@ -517,14 +556,10 @@ var ZhihuDaily = {
     viewNews: function(id) {
         this.addMask();
 
-        var data = ZhihuDailyDate.getNewsObj(id);
-        var commentsdata = ZhihuDailyDate.getCommentsObj(id);
+        var data = ZhihuDailyData.getNewsObj(id);
+        var commentsdata = ZhihuDailyData.getCommentsObj(id);
         var cssLen = data.css.length, jsLen = data.js.length;
 
-        if(data.type !== 0) {
-            $('.mask .title').html('无法查看此类型文章内容, 待更新...');
-            return;
-        }
         if(cssLen > 0) {
             for (var i = 0; i < cssLen; i++) {
                 $('.mask').prepend($('<link rel="stylesheet" type="text/css" href="' + data.css[i] + '" />'));
@@ -538,7 +573,7 @@ var ZhihuDaily = {
 
         var imgTpl = '<div class="content_head_img">' +
                 '    <div class="img_source">来源: ' + data.image_source + '</div>' +
-                '    <div class="comments_info">' +
+                '    <div class="comments_info" data-id="' + id + '">' +
                 '        <div>' +
                 '            <img src="img/stories_popularity.png">' +
                 '            <span>点赞数: ' + commentsdata.popularity + '</span>' +
@@ -554,19 +589,34 @@ var ZhihuDaily = {
                 '    </div>' +
                 '</div>';
 
-        var cb = $('.mask .content_box').html(data.body);
+        var bodyHtml = data.body;
+        var cb = $('.mask .content_box');
+
+        if(!bodyHtml) {
+            if(data.share_url) {
+                cb.html($('<a class="open_url" target="_blank" href="' + data.share_url + '">' + 
+                    '    <div>进入</div>' + 
+                    '</a>'));
+            }else {
+                $('.mask .title').html('无法查看此类型文章内容, 待更新...');
+                return;
+            }
+        }else {
+            cb.html(data.body);
+        }
+
         if(data.image) {
             cb.prepend($(imgTpl).css({
                 background: 'url(' + data.image + ')'
             }));
         }else {
             cb.prepend($('<div></div>').css({
-                height: '180px',
+                height: '200px',
                 position: 'relative'
             })
             .append($(imgTpl).find('.comments_info').css({
                 bottom: 0,
-                top: 0
+                top: '20px'
             })));
         }
 
@@ -575,10 +625,46 @@ var ZhihuDaily = {
         this.link2Blank();
     },
     /**
+     * 查看评论内容
+     */
+    viewComments: function(id, lastId, isLongComments) {
+        var rs = null;
+        // 默认获取短评论
+        if(isLongComments) {
+            rs = ZhihuDailyData.getLongCommentsList(id, lastId);
+        }else {
+            rs = ZhihuDailyData.getShortCommentsList(id, lastId);
+        }
+
+        var comments = rs.comments;
+        if(!comments.length) {
+            return;
+        }
+
+        var commentsInfoBox = $('<div class="comments_info_box" id="comments_info_box"><ul></ul></div>'),
+            commentsInfoBoxUl = commentsInfoBox.find('ul');
+        var item = null, replyTo, tsmp;
+        for (var i = 0, len = comments.length; i < len; i++) {
+            item = comments[i];
+            replyTo = item.reply_to ? ('<div class="comments_r_info_content"><span>//' + item.reply_to.author + ': </span>' + item.reply_to.content + '</div>') : '';
+            tsmp = item.time < 10000000000 ? (item.time * 1000) : item.time;
+            commentsInfoBoxUl.append($('<li>' + 
+                '    <div class="comments_info_avatar"><img src="' + item.avatar + '"></div>' + 
+                '    <div class="comments_info_desc">' + 
+                '        <div class="comments_info_author">' + item.author + '<span class="comments_info_content_liks">' + item.likes + '</span></div>' + 
+                '        <div class="comments_info_content">' + item.content + '</div>' + replyTo + 
+                '        <div class="comments_info_time">' + DateTools.getTime(new Date(tsmp)) + '</div>' + 
+                '    </div>' + 
+                '</li>'));
+        }
+        commentsInfoBox.append(commentsInfoBoxUl);
+        $('.comments_mask .content_box').append(commentsInfoBox);
+    },
+    /**
      * 在当前 screen 中加入弹出层
      */
-    addMask: function() {
-        $(bb.screen.currentScreen).append($('<div class="mask">' +
+    addMask: function(clazz) {
+        $(bb.screen.currentScreen).append($('<div class="mask' + (typeof clazz === 'undefined' ? '' : clazz) + '">' +
             '    <div class="head">' +
             '        <div class="title"></div>' +
             '        <button class="close_btn">X</button>' +
@@ -663,7 +749,7 @@ var BBUtil = {
         );
     },
     initImgZoom: function(url) {
-        $('.mask').append($('<div id="view_img_box"><img src="' + url + '"></div>')
+        $(bb.screen.currentScreen).append($('<div id="view_img_box"><img src="' + url + '"></div>')
             .on('click', function() {
                 $(this).remove();
         }));
@@ -671,6 +757,7 @@ var BBUtil = {
 }
 
 var ImgSlider = {
+    ITV_NAME: "zhihudailyITV",
     ITV_TIME: 10000, // 滚动间隔时间
     params: {
         startX: 0,
@@ -679,10 +766,11 @@ var ImgSlider = {
         sliderLi: null,
         sliderA: null,
         sliding: false,
-        isMove: false,
-        itv: null
+        isMove: false
     },
     init: function() {
+        this.stop();
+
         this.params.sliderUl = $('#img_slider ul');
         this.params.sliderLi = $('#img_slider ul li');
         this.params.sliderA = $('#img_slider div a');
@@ -700,14 +788,14 @@ var ImgSlider = {
         this.start();
     },
     start: function() {
-        this.params.itv = window.setInterval(function() {
+        window[this.ITV_NAME] = window.setInterval(function() {
             if(0 === this.slide(1)) {
                 this.slide(null, '0');
             }
         }.bind(this), this.ITV_TIME);
     },
     stop: function() {
-        window.clearInterval(this.params.itv);
+        window.clearInterval(window[this.ITV_NAME]);
     },
     addLisnter: function() {
         var thiz = this;

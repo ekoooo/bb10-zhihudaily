@@ -306,7 +306,7 @@ h1 {
     background-color: #fff;
 }
 
-.head {
+.mask .head {
     position: fixed;
     z-index: 10;
     top: 0;
@@ -320,6 +320,14 @@ h1 {
     background: -webkit-linear-gradient(top, #fff 0%, #eee 100%);
 }
 
+.mask .head .title {
+    overflow-x: auto;
+    overflow-y: hidden;
+    height: 100%;
+    padding: 0 100px;
+    box-sizing: border-box;
+}
+
 .close_btn {
     position: absolute;
     width: 60px;
@@ -329,7 +337,7 @@ h1 {
     top: 50%;
     outline: none;
     border: 1px solid #eee;
-    background: -webkit-linear-gradient(top, #fff 0%, #bbb 100%);
+    background: -webkit-linear-gradient(bottom, #00BFFF 0%, #0BDED7 100%);
     color: #fff;
     font-size: 30px;
     -webkit-transform: translateY(-50%);
@@ -344,8 +352,15 @@ h1 {
 .mask .question-title,
 .mask .headline-background .heading,
 .mask .comment-item,
-.mask .headline-title {
+.mask .comment-item a,
+.mask .headline-title,
+.mask .headline .meta a,
+.mask .headline .meta a:hover {
     font-size: 40px !important;
+}
+
+.mask .headline .heading-content {
+    font-size: 30px !important;
 }
 
 .mask .view-more a {
@@ -459,6 +474,23 @@ div[data-bb-type="screen"] img {
     overflow: hidden;
     display: inline-block;
 }
+
+.open_url {
+    width: 100%;
+    bottom: 20px;
+    text-align: center;
+    position: absolute;
+}
+
+.open_url >div {
+    width: 200px;
+    height: 200px;
+    border-radius: 50%;
+    line-height: 200px;
+    color: #fff;
+    margin: 50px auto 10px auto;
+    background: -webkit-linear-gradient(bottom, #00BFFF 0%, #0BDED7 100%);
+}
 /*news end */
 
 /*img zoom start */
@@ -481,3 +513,89 @@ div[data-bb-type="screen"] img {
     min-width: 80%;
 }
 /*img zoom end */
+
+/*评论查看start*/
+.show_comments_btn {
+    float: left;
+    width: 50%;
+}
+
+.show_comments_btn.active {
+    background-color: #eee;
+}
+
+.comments_info_box {
+    font-size: 40px;
+    width: 100%;
+    height: 1320px;
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+
+.comments_info_box li {
+    display: block;
+    border-bottom: 1px solid #eee;
+    padding: 20px 20px 50px 20px;
+}
+
+.comments_info_avatar {
+    width: 120px;
+    height: 120px;
+    float: left;
+}
+
+.comments_info_avatar img {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+}
+
+.comments_info_desc {
+    margin-left: 140px;
+}
+
+.comments_info_author {
+    font-weight: bold;
+    line-height: 120px;
+}
+
+.comments_info_content {
+    line-height: 60px;
+    color: #000;
+}
+
+.comments_info_time {
+    font-size: 35px;
+    margin-top: 20px;
+    color: #888;
+}
+
+.comments_info_content_liks {
+    position: relative;
+    float: right;
+    font-size: 35px;
+    color: #888;
+}
+
+.comments_info_content_liks:before {
+    position: absolute;
+    top: 33px;
+    left: -60px;
+    content: '';
+    width: 50px;
+    height: 50px;
+    background: url(../img/ico_likes.png) no-repeat center center;
+    background-size: 95% 100%;
+}
+
+.comments_r_info_content {
+    padding-left: 2em;
+    font-size: 35px;
+    line-height: 55px;
+    color: #888;
+}
+
+.comments_r_info_content span {
+    font-weight: bold;
+}
+/*评论查看end*/

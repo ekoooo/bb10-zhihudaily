@@ -14,10 +14,18 @@
 新闻对应短评论查看:     http://news-at.zhihu.com/api/4/story/#{id}/short-comments
 新闻的推荐者:           http://news-at.zhihu.com/api/4/story/#{id}/recommenders
 
+长评论翻页: 
+http://news-at.zhihu.com/api/4/story/7809160/long-comments
+http://news-at.zhihu.com/api/4/story/7809160/long-comments/before/26092304
+
+短评论翻页: 
+http://news-at.zhihu.com/api/4/story/7809160/short-comments
+http://news-at.zhihu.com/api/4/story/7809160/short-comments/before/26354994
+
+
+
 
 http://news-at.zhihu.com/api/4/#{section|theme}/#{id}/before/#{timestamp|last_id}  2016-11-06 06:59:58
-
-
 
 
 
