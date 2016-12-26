@@ -664,7 +664,7 @@ var ZhihuDaily = {
      * 在当前 screen 中加入弹出层
      */
     addMask: function(clazz) {
-        $(bb.screen.currentScreen).append($('<div class="mask' + (typeof clazz === 'undefined' ? '' : clazz) + '">' +
+        $(bb.screen.currentScreen).append($('<div class="mask ' + (typeof clazz === 'undefined' ? '' : clazz) + '">' +
             '    <div class="head">' +
             '        <div class="title"></div>' +
             '        <button class="close_btn">X</button>' +
