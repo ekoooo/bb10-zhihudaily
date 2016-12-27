@@ -313,7 +313,7 @@ var ZhihuDaily = {
 
         var storiesListDom = $('<ul/>').addClass('stories_list').attr('data-date', date).append($('<div class="stories_date">' + date + '</div>'));
         var liTpl = '<li>' +
-            '   <a href="javascript: void(0);">' +
+            '   <a href="javascript:void(0);">' +
             '       <div class="stories_desc"></div>' +
             '       <div class="stories_ico"></div>' +
             '   </a>' +
@@ -750,9 +750,9 @@ var ZhihuDaily = {
             this.isReading = false;
             this.removeLoading();
             // 如果加载完成则加上标志
-            commentsInfoBoxUl.append($('<li>' + 
-                    '<div class="comments_info_avatar"></div>' + 
-                    '<div class="comments_info_desc"><div class="comments_info_author">已经全部加载完成!</div></div>' + 
+            commentsInfoBoxUl.append($('<li>' +
+                    '<div class="comments_info_avatar"></div>' +
+                    '<div class="comments_info_desc"><div class="comments_info_author">已经全部加载完成!</div></div>' +
                     '</li>')).attr('is_load_end', 1);
             return;
         }
@@ -794,8 +794,8 @@ var ZhihuDaily = {
             '        <div class="title"></div>' +
             '        <button class="close_btn">X</button>' +
             '    </div>' +
-            '    <div class="content_box_wrapper">' + 
-            '       <div class="content_box"></div>' + 
+            '    <div class="content_box_wrapper">' +
+            '       <div class="content_box"></div>' +
             '   </div>' +
             '</div>'));
 

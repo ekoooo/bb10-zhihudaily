@@ -3,8 +3,6 @@
     <feature name="com.blackberry.ui.dialog" value="com.blackberry.ui.dialog" />
     <name>知乎日报</name>
     <preference name="ChildBrowser" value="disable" />
-    <preference name="DiskCache" value="enable" />
-    <preference name="SpatialNavigation" value="true" />
     <icon src="img/logo.png" />
     <content src="index.html" />
     <access origin="*" />
