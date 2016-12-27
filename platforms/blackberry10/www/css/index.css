@@ -614,3 +614,22 @@ div[data-bb-type="screen"] img {
     display: none;
 }
 /*评论查看end*/
+
+/*选择日期 start*/
+#change_date_ipt {
+    position: absolute;
+    bottom: 120px;
+    font-size: 40px;
+    margin: 20px 0 0 20px;
+    width: 94.5%;
+}
+
+#change_date_btn {
+    position: absolute;
+    bottom: 0;
+    font-size: 40px;
+    margin: 20px;
+    width: 97%;
+    height: 83px;
+}
+/*选择日期 end*/

@@ -30,6 +30,12 @@ var App = {
                     App.storiesBoxOnScroll();
                     ActionBarMgr.runing = false;
                     break;
+                case 'change_date':
+                    // data-screen-flag 重置
+                    $(bb.screen.currentScreen).attr('data-screen-flag', obj.params['screenFlag']);
+                    ZhihuDaily.changeDate.viewHisInfo(obj);
+                    ActionBarMgr.runing = false;
+                    break;
                 default:
                     break;
             }
@@ -84,7 +90,6 @@ var App = {
             });
 
             // 滚动加载更多
-            // $('.comments_info_box').on('scroll', function(e) {
             $('.comments_mask .content_box_wrapper').on('scroll', function(e) {
                 e.preventDefault();
                 ZhihuDaily.isLongComments ? ZhihuDaily.loadMoreComments($('#comments_info_box_long')) : ZhihuDaily.loadMoreComments($('#comments_info_box_short'));
@@ -798,6 +803,91 @@ var ZhihuDaily = {
     },
     link2Blank: function() {
         $('.content_box a').attr('target', '_blank');
+    },
+    changeDate: {
+        CLASS_NAME: "change_date_mask",
+        initPanel: function() {
+            // 添加 Mask 提供显示选择日期
+            ZhihuDaily.addMask(this.CLASS_NAME);
+
+            var panel = $('.' + this.CLASS_NAME),
+                titleBox = panel.find('.title'),
+                contentBox = panel.find('.content_box');
+
+            titleBox.text('请选择日期');
+            // 添加 input 提供选择
+            var ipt = $('<input type="date" name="change_date_ipt" id="change_date_ipt" autofocus="autofocus" />');
+            var btn = $('<input type="button" name="change_date_btn" id="change_date_btn" value="确定">');
+            contentBox.append(ipt).append(btn);
+
+            this.initEvent();
+        },
+        initEvent: function() {
+            var that = this;
+            $('#change_date_btn').on('click', function(e) {
+                var selectedDate = $('#change_date_ipt').val();
+                var screenFlag = $('.bb-screen').attr('data-screen-flag');
+                var stories = $('.stories'),
+                    type = stories.attr('data-type'),
+                    id = stories.attr('data-id');
+
+                if(!that.validateDate(selectedDate)) {
+                    return;
+                }
+
+                // 关闭 panel
+                $('.close_btn').trigger('click');
+
+                window.setTimeout(function() {
+                    ShowScreen.changeDate({
+                        screenFlag: screenFlag,
+                        date: selectedDate,
+                        type: type,
+                        id: id,
+                    });
+                }, 500);
+            });
+        },
+        validateDate: function(date) {
+            if(typeof date === 'undefined' || date === '') {
+                BBUtil.alert('请选择日期!', '提示');
+                return false;
+            }
+            else if((+new Date(date)) > (+new Date())) {
+                BBUtil.alert('选择的日期不能大于当前时间!', '提示');
+                return false;
+            }
+            return true;
+        },
+        viewHisInfo: function(obj) {
+            // 查看类型
+            var screenFlag = obj.params['screenFlag'];
+            var stories = $('.stories');
+            var date = obj.params.date;
+            var type = obj.params.type;
+            var id = obj.params.id;
+
+            // 只有栏目和主页可以查看历史消息
+            if('sections_themes_list' === screenFlag) { // 栏目/主题
+                if('sections' === type) { // 栏目
+                    stories.attr('data-type', type);
+                    stories.attr('data-id', id);
+
+                    ZhihuDaily.appendNextSectionsThemes(+new Date(date) / 1000, id, type);
+                }else {
+                    BBUtil.alert('此类型不支持查看历史消息!', '提示');
+                    return;
+                }
+            }else if('latest' === screenFlag) {
+                ZhihuDaily.appendPreDayNews(DateTools.getNextDateStr(new Date(date)));
+            }else {
+                BBUtil.alert('此类型不支持查看历史消息!', '提示');
+                return;
+            }
+
+            stories.parent().parent().addClass('stories_box');
+            App.storiesBoxOnScroll();
+        }
     }
 }
 
@@ -819,6 +909,10 @@ var ActionBarMgr = {
                     break;
                 case 'action_bar_hots':
                     ShowScreen.hots();
+                    break;
+                case 'action_bar_date':
+                    // 显示出一层让其选择时间
+                    ZhihuDaily.changeDate.initPanel();
                     break;
                 default:
                     break;
@@ -853,6 +947,10 @@ var ShowScreen = {
     sections_themes_list: function(params) {
         ActionBarMgr.runing = true;
         bb.pushScreen('app.html', 'sections_themes_list', params);
+    },
+    changeDate: function(params) {
+        ActionBarMgr.runing = true;
+        bb.pushScreen('app.html', 'change_date', params);
     }
 }
 
@@ -867,6 +965,19 @@ var BBUtil = {
             dialogCallBack,
             {
                 title : "Network Connection Required"
+            }
+        );
+    },
+    alert: function(content, title) {
+        function dialogCallBack(selection) {
+            // TODO
+        }
+
+        blackberry.ui.dialog.standardAskAsync(content,
+            blackberry.ui.dialog.D_OK,
+            dialogCallBack,
+            {
+                title : title
             }
         );
     },
