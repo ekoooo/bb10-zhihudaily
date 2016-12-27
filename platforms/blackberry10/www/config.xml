@@ -3,7 +3,9 @@
     <feature name="com.blackberry.ui.dialog" value="com.blackberry.ui.dialog" />
     <name>知乎日报</name>
     <preference name="ChildBrowser" value="disable" />
-    <license href="MIT" />
+    <preference name="DiskCache" value="enable" />
+    <preference name="SpatialNavigation" value="true" />
+    <icon src="img/logo.png" />
     <content src="index.html" />
     <access origin="*" />
     <access origin="http://zhihu.com" subdomains="true" />
@@ -12,5 +14,5 @@
     <access origin="https://zhimg.com" subdomains="true" />
     <description>bb10 知乎日报，webworks 版本</description>
     <author email="954408050@qq.com" href="github.com/ekoooo">liuwanlin</author>
-    <icon src="img/logo.png" />
+    <license href="MIT" />
 </widget>

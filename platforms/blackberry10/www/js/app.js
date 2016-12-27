@@ -14,9 +14,7 @@ var App = {
                 case 'latest':
                     ZhihuDaily.initLatestPage();
                     // 主页滚动监听
-                    $('.stories_box').on('scroll', function(e) {
-                        ZhihuDaily.onStoriesScreenScroll(e);
-                    });
+                    App.storiesBoxOnScroll();
                     break;
                 case 'sections':
                     ZhihuDaily.initSectionsPage();
@@ -29,10 +27,7 @@ var App = {
                     break;
                 case 'sections_themes_list':
                     ZhihuDaily.initSectionsThemesListPage(obj);
-                    // 主页滚动监听
-                    $('.stories_box').on('scroll', function(e) {
-                        ZhihuDaily.onStoriesScreenScroll(e);
-                    });
+                    App.storiesBoxOnScroll();
                     ActionBarMgr.runing = false;
                     break;
                 default:
@@ -73,6 +68,9 @@ var App = {
 
         // 点击看评论
         $(document).on('click', '.comments_info', function(e) {
+            // 默认为长评论, 设置类型
+            ZhihuDaily.isLongComments = false;
+
             ZhihuDaily.addMask('comments_mask');
             ZhihuDaily.appendCommentsFrame();
             ZhihuDaily.viewComments($(e.currentTarget).attr('data-id'));
@@ -86,9 +84,17 @@ var App = {
             });
 
             // 滚动加载更多
-            $('.comments_info_box').on('scroll', function(e) {
-                ZhihuDaily.loadMoreComments($(e.currentTarget));
+            // $('.comments_info_box').on('scroll', function(e) {
+            $('.comments_mask .content_box_wrapper').on('scroll', function(e) {
+                e.preventDefault();
+                ZhihuDaily.isLongComments ? ZhihuDaily.loadMoreComments($('#comments_info_box_long')) : ZhihuDaily.loadMoreComments($('#comments_info_box_short'));
             });
+        });
+    },
+    storiesBoxOnScroll: function() {
+        $('.stories_box').on('scroll', function(e) {
+            e.preventDefault();
+            ZhihuDaily.onStoriesScreenScroll(e);
         });
     }
 };
@@ -258,7 +264,7 @@ var ZhihuDailyData = {
             dataType: 'json',
             timeout: this.AJAX_GET_TIME_OUT,
             success: function(data) {
-                console.log(url, 'success');
+                // console.log(url, 'success');
                 rs = data;
             },
             error: function(xhr, type) {
@@ -361,8 +367,6 @@ var ZhihuDaily = {
         }
 
         $('.stories').append(storiesListDom);
-
-        bb.refresh();
     },
     /**
      * 主页下滑获取前一天数据并显示
@@ -538,10 +542,11 @@ var ZhihuDaily = {
     isStoriesKeepLoading: function() {
         return $('.stories').height() + this.LOADING_RES_HEIGHT <= $('.stories_box').height();
     },
-    onStoriesScreenScroll: function() {
+    onStoriesScreenScroll: function(e) {
         var boxH = App.BB_SCREEN_HEIGHT - bb.screen.getActionBarHeight();
-        var topH = $('.stories_box').scrollTop();
+        var topH = $(e.currentTarget).scrollTop();
         var contentH = $('.stories').height();
+
         if(!this.isReading && boxH + topH + this.LOADING_RES_HEIGHT >= contentH) {
             var dataType = $('.stories').attr('data-type');
             if(dataType === 'sections' || dataType === 'themes') {
@@ -569,15 +574,19 @@ var ZhihuDaily = {
      * 查看内容
      */
     viewNews: function(id) {
+        this.showLoading();
         this.addMask();
 
         var data = ZhihuDailyData.getNewsObj(id);
         var commentsdata = ZhihuDailyData.getCommentsObj(id);
         var cssLen = data.css.length, jsLen = data.js.length;
+        var lastCssIdIndex = 0, haveCss = false;
 
         if(cssLen > 0) {
+            haveCss = true;
             for (var i = 0; i < cssLen; i++) {
-                $('.mask').prepend($('<link rel="stylesheet" type="text/css" href="' + data.css[i] + '" />'));
+                $('.mask').prepend($('<link rel="stylesheet" type="text/css" id="view_news_' + i + '" href="' + data.css[i] + '" />'));
+                lastCssIdIndex = i;
             }
         }
         if(jsLen > 0) {
@@ -605,15 +614,17 @@ var ZhihuDaily = {
                 '</div>';
 
         var bodyHtml = data.body;
-        var cb = $('.mask .content_box');
+        var cb = $('.mask .content_box').css({
+            display: 'none'
+        });
 
         if(!bodyHtml) {
             if(data.share_url) {
-                cb.html($('<a class="open_url" target="_blank" href="' + data.share_url + '">' +
+                cb.append($('<a class="open_url" target="_blank" href="' + data.share_url + '">' +
                     '    <div>进入</div>' +
                     '</a>'));
             }else {
-                $('.mask .title').html('无法查看此类型文章内容, 待更新...');
+                $('.mask .title').text('无法查看此类型文章内容, 待更新...');
                 return;
             }
         }else {
@@ -630,14 +641,29 @@ var ZhihuDaily = {
                 position: 'relative'
             })
             .append($(imgTpl).find('.comments_info').css({
-                bottom: 0,
-                top: '20px'
+                bottom: 0
             })));
         }
 
-        $('.mask .title').html(data.title);
+        $('.mask .title').text(data.title);
+
+        // 解决闪烁问题
+        if(haveCss) {
+            var isLoadCss = false;
+            document.querySelector('#view_news_' + lastCssIdIndex).onload = function() {
+                isLoadCss = true;
+                cb.fadeIn();
+            }
+
+            window.setTimeout(function() {
+                if(!isLoadCss) {
+                    cb.fadeIn();
+                }
+            }, 5000);
+        }
 
         this.link2Blank();
+        this.removeLoading();
     },
     appendCommentsFrame: function() {
         // 按钮
@@ -647,36 +673,40 @@ var ZhihuDaily = {
         $('.comments_mask .content_box').append($('<div class="comments_info_box" id="comments_info_box_short"><ul></ul></div>' +
             '<div class="comments_info_box" id="comments_info_box_long"><ul></ul></div>'));
     },
+    /**
+     * 当前浏览的短评类型
+     */
+    isLongComments: false,
     changeCommentsType: function(crt) {
         $('.show_comments_btn').removeClass('active');
         crt.addClass('active');
 
         var sBox = $('#comments_info_box_short'),
             lBox = $('#comments_info_box_long'),
-            crtBox = null,
-            isLongComments = false;
+            crtBox = null;
         if(crt.hasClass('show_long_comments_btn')) {
-            isLongComments = true;
+            this.isLongComments = true;
             sBox.hide();
             lBox.show();
             crtBox = lBox;
         }else {
+            this.isLongComments = false;
             lBox.hide();
             sBox.show();
             crtBox = sBox;
         }
         // 判断是否已经初始化
         if(!crtBox.attr('data-init')) {
-            this.viewComments($('.comments_mask .content_box').attr('data-id'), false, isLongComments);
+            this.viewComments($('.comments_mask .content_box').attr('data-id'), false, this.isLongComments);
         }
     },
     loadMoreComments: function(crt) {
         var boxH = App.BB_SCREEN_HEIGHT;
-        var topH = crt.scrollTop();
-        var contentH = crt.find('ul').height();
-        // console.log('boxH', boxH, 'topH', topH, 'contentH', contentH);
-        // console.log('boxH + topH + this.LOADING_RES_HEIGHT >= contentH', boxH + topH + this.LOADING_RES_HEIGHT >= contentH);
-        if(!this.isReading && boxH + topH + this.LOADING_RES_HEIGHT >= contentH) {
+        var topH = $('.comments_mask .content_box_wrapper').scrollTop();
+        var ul = crt.find('ul');
+        var contentH = ul.height();
+
+        if(!this.isReading && boxH + topH + this.LOADING_RES_HEIGHT >= contentH && !ul.attr('is_load_end')) {
             this.viewComments($('.comments_mask .content_box').attr('data-id'),
                 crt.find('ul li:last-child').attr('data-id'),
                 crt.attr('id') === 'comments_info_box_long');
@@ -702,11 +732,6 @@ var ZhihuDaily = {
 
         var comments = rs.comments;
         var commentsInfoBoxUl = null;
-        if(!comments.length) {
-            this.isReading = false;
-            this.removeLoading();
-            return;
-        }
 
         if(isLongComments) {
             commentsInfoBoxUl = $('#comments_info_box_long ul');
@@ -714,11 +739,33 @@ var ZhihuDaily = {
             commentsInfoBoxUl = $('#comments_info_box_short ul');
         }
 
-        var item = null, replyTo, tsmp, lisHTML = '';
+        commentsInfoBoxUl.parent().attr('data-init', '1');
+
+        if(!comments.length) {
+            this.isReading = false;
+            this.removeLoading();
+            // 如果加载完成则加上标志
+            commentsInfoBoxUl.append($('<li>' + 
+                    '<div class="comments_info_avatar"></div>' + 
+                    '<div class="comments_info_desc"><div class="comments_info_author">已经全部加载完成!</div></div>' + 
+                    '</li>')).attr('is_load_end', 1);
+            return;
+        }
+
+        var item = null, tsmp, lisHTML = '', replyTo = '';
         for (var i = 0, len = comments.length; i < len; i++) {
             item = comments[i];
-            replyTo = item.reply_to ? ('<div class="comments_r_info_content"><span>//' + item.reply_to.author + ': </span>' + item.reply_to.content + '</div>') : '';
+
+            if(item.reply_to) {
+                if(item.reply_to.status === 1) { // 评论已删除
+                    replyTo = '<div class="comments_r_info_content"><span></span>' + item.reply_to.error_msg + '</div>'
+                }else {
+                    replyTo = '<div class="comments_r_info_content"><span>//' + item.reply_to.author + ': </span>' + item.reply_to.content + '</div>';
+                }
+            }
+
             tsmp = item.time < 10000000000 ? (item.time * 1000) : item.time;
+
             lisHTML += '<li data-id="' + item.id + '">' +
                 '    <div class="comments_info_avatar"><img src="' + item.avatar + '"></div>' +
                 '    <div class="comments_info_desc">' +
@@ -728,7 +775,7 @@ var ZhihuDaily = {
                 '    </div>' +
                 '</li>';
         }
-        commentsInfoBoxUl.append($(lisHTML)).parent().attr('data-init', '1').parent().attr('data-id', id);
+        commentsInfoBoxUl.append($(lisHTML)).parent().parent().attr('data-id', id);
 
         this.removeLoading();
         this.isReading = false;
@@ -742,7 +789,9 @@ var ZhihuDaily = {
             '        <div class="title"></div>' +
             '        <button class="close_btn">X</button>' +
             '    </div>' +
-            '    <div class="content_box"></div>' +
+            '    <div class="content_box_wrapper">' + 
+            '       <div class="content_box"></div>' + 
+            '   </div>' +
             '</div>'));
 
         $('.mask:last-child').fadeIn();
