@@ -292,7 +292,7 @@ var ZhihuDaily = {
     isReading: false, // 是否正在读取数据
     DATE_SUFFIX: " 06:59:58", // api 日期中固定时间
     IS_SHOW_LOADING: true, // 是否显示 loading 提示
-    LOADING_RES_HEIGHT: 0, // loading 距离底部位置多少时开始加载, 单位 px
+    LOADING_RES_HEIGHT: 50, // loading 距离底部位置多少时开始加载, 单位 px
     /**
      * 获取开始时间时间戳, 用于 api 中时间戳参数
      * @param  {[string]} date 日期, 格式 2016-11-06
@@ -348,7 +348,7 @@ var ZhihuDaily = {
                     item = stories[i];
                     tempLi = $(liTpl);
                     tempLi.find('a').attr('data-id', item.id);
-                    tempLi.find('.stories_desc').text((isThemes ? '' : (item.display_date + '，')) + item.title);
+                    tempLi.find('.stories_desc').text((isThemes ? '' : (item.date + '，')) + item.title);
                     if(item.images && item.images[0]) {
                         tempLi.find('.stories_ico').css({
                             background: 'url(' + item.images[0] + ')'
@@ -565,6 +565,10 @@ var ZhihuDaily = {
         if(this.IS_SHOW_LOADING) {
             $('body').append($('<div class="loading">loading...</div>'));
             $('.loading').fadeIn();
+
+            $('.loading').onclick = function(e) {
+                ZhihuDaily.removeLoading();
+            };
         }
     },
     removeLoading: function() {
@@ -600,6 +604,25 @@ var ZhihuDaily = {
             }
         }
 
+        var cb = $('.mask .content_box').css({
+            display: 'none'
+        });
+
+        // 解决闪烁问题
+        if(haveCss) {
+            var isLoadCss = false;
+            document.querySelector('#view_news_' + lastCssIdIndex).onload = function() {
+                isLoadCss = true;
+                cb.fadeIn();
+            }
+
+            window.setTimeout(function() {
+                if(!isLoadCss) {
+                    cb.fadeIn();
+                }
+            }, 2000);
+        }
+
         var imgTpl = '<div class="content_head_img">' +
                 '    <div class="img_source">来源: ' + data.image_source + '</div>' +
                 '    <div class="comments_info" data-id="' + id + '">' +
@@ -619,9 +642,6 @@ var ZhihuDaily = {
                 '</div>';
 
         var bodyHtml = data.body;
-        var cb = $('.mask .content_box').css({
-            display: 'none'
-        });
 
         if(!bodyHtml) {
             if(data.share_url) {
@@ -651,21 +671,6 @@ var ZhihuDaily = {
         }
 
         $('.mask .title').text(data.title);
-
-        // 解决闪烁问题
-        if(haveCss) {
-            var isLoadCss = false;
-            document.querySelector('#view_news_' + lastCssIdIndex).onload = function() {
-                isLoadCss = true;
-                cb.fadeIn();
-            }
-
-            window.setTimeout(function() {
-                if(!isLoadCss) {
-                    cb.fadeIn();
-                }
-            }, 5000);
-        }
 
         this.link2Blank();
         this.removeLoading();
@@ -911,7 +916,6 @@ var ActionBarMgr = {
                     ShowScreen.hots();
                     break;
                 case 'action_bar_date':
-                    // 显示出一层让其选择时间
                     ZhihuDaily.changeDate.initPanel();
                     break;
                 default:
@@ -956,17 +960,7 @@ var ShowScreen = {
 
 var BBUtil = {
     showConnectionDialog: function() {
-        function dialogCallBack(selection) {
-            // TODO
-        }
-
-        blackberry.ui.dialog.standardAskAsync("无法连接网络 请检查您的数据连接并重试",
-            blackberry.ui.dialog.D_OK,
-            dialogCallBack,
-            {
-                title : "Network Connection Required"
-            }
-        );
+        this.alert("无法连接网络 请检查您的数据连接并重试", "Network Connection Required");
     },
     alert: function(content, title) {
         function dialogCallBack(selection) {
