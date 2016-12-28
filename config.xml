@@ -4,6 +4,8 @@
   <name>知乎日报</name>
   <preference name="ChildBrowser" value="disable"/>
   <icon src="img/logo.png"/>
+  <rim:splash src="img/splash-1280x768.png"/>
+  <rim:splash src="img/splash-720x720.png"/>
   <content src="index.html"/>
   <access origin="*"/>
   <access origin="http://zhihu.com" subdomains="true"/>
