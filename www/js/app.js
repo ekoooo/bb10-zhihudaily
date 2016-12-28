@@ -12,27 +12,25 @@ var App = {
 
             switch (obj.id) {
                 case 'latest':
-                    ZhihuDaily.initLatestPage();
-                    // 主页滚动监听
-                    App.storiesBoxOnScroll();
+                    ZhihuDaily.initPage.initLatestPage();
+                    ZhihuDaily.storieListener.onStoriesBoxScroll();
                     break;
                 case 'sections':
-                    ZhihuDaily.initSectionsPage();
+                    ZhihuDaily.initPage.initSectionsPage();
                     break;
                 case 'themes':
-                    ZhihuDaily.initThemesPage();
+                    ZhihuDaily.initPage.initThemesPage();
                     break;
                 case 'hots':
-                    ZhihuDaily.initHotsPage();
+                    ZhihuDaily.initPage.initHotsPage();
                     break;
                 case 'sections_themes_list':
-                    ZhihuDaily.initSectionsThemesListPage(obj);
-                    App.storiesBoxOnScroll();
+                    ZhihuDaily.initPage.initSectionsThemesListPage(obj);
+                    ZhihuDaily.storieListener.onStoriesBoxScroll();
                     ActionBarMgr.runing = false;
                     break;
                 case 'change_date':
-                    // data-screen-flag 重置
-                    $(bb.screen.currentScreen).attr('data-screen-flag', obj.params['screenFlag']);
+                    $(bb.screen.currentScreen).attr('data-screen-flag', obj.params['screenFlag']); // data-screen-flag 重置
                     ZhihuDaily.changeDate.viewHisInfo(obj);
                     ActionBarMgr.runing = false;
                     break;
@@ -56,7 +54,7 @@ var App = {
 
         // 点击新闻, 显示内容
         $(document).on('click', '.stories a[data-id]', function(e) {
-            ZhihuDaily.viewNews($(e.currentTarget).attr('data-id'));
+            ZhihuDaily.viewer.viewNews($(e.currentTarget).attr('data-id'));
         });
 
         // 新闻中图片点击放大
@@ -77,29 +75,11 @@ var App = {
             // 默认为长评论, 设置类型
             ZhihuDaily.isLongComments = false;
 
-            ZhihuDaily.addMask('comments_mask');
-            ZhihuDaily.appendCommentsFrame();
-            ZhihuDaily.viewComments($(e.currentTarget).attr('data-id'));
+            ZhihuDaily.mask.addMask('comments_mask');
+            ZhihuDaily.mask.addCommentsFrameToMask();
+            ZhihuDaily.viewer.viewComments($(e.currentTarget).attr('data-id'));
 
-            // 监听切换事件
-            $('.comments_mask .show_comments_btn').on('click', function(e) {
-                var crt = $(e.currentTarget);
-                if(!crt.hasClass('active')) {
-                    ZhihuDaily.changeCommentsType(crt);
-                }
-            });
-
-            // 滚动加载更多
-            $('.comments_mask .content_box_wrapper').on('scroll', function(e) {
-                e.preventDefault();
-                ZhihuDaily.isLongComments ? ZhihuDaily.loadMoreComments($('#comments_info_box_long')) : ZhihuDaily.loadMoreComments($('#comments_info_box_short'));
-            });
-        });
-    },
-    storiesBoxOnScroll: function() {
-        $('.stories_box').on('scroll', function(e) {
-            e.preventDefault();
-            ZhihuDaily.onStoriesScreenScroll(e);
+            ZhihuDaily.storieListener.onCommentsListener();
         });
     }
 };
@@ -258,7 +238,7 @@ var ZhihuDailyData = {
         // 判断是否启动网络
         if(!window.navigator.onLine) {
             BBUtil.showConnectionDialog();
-            ZhihuDaily.removeLoading();
+            ZhihuDaily.loading.removeLoading();
             return rs;
         }
 
@@ -275,7 +255,7 @@ var ZhihuDailyData = {
             error: function(xhr, type) {
                 console.log(url, xhr, type, 'error');
                 // 如果失败则移除 loading
-                ZhihuDaily.removeLoading();
+                ZhihuDaily.loading.removeLoading();
             }
         });
         return rs;
@@ -289,531 +269,566 @@ var ZhihuDailyData = {
 }
 
 var ZhihuDaily = {
+    isLongComments: false, // 当前浏览的短评类型
     isReading: false, // 是否正在读取数据
     DATE_SUFFIX: " 06:59:58", // api 日期中固定时间
     IS_SHOW_LOADING: true, // 是否显示 loading 提示
     LOADING_RES_HEIGHT: 50, // loading 距离底部位置多少时开始加载, 单位 px
     /**
-     * 获取开始时间时间戳, 用于 api 中时间戳参数
-     * @param  {[string]} date 日期, 格式 2016-11-06
+     * 初始化界面
+     * 1. initLatestPage 最新消息
+     * 2. initHotsPage 热门消息
+     * 3. initSectionsPage 栏目显示
+     * 4. initThemesPage 主题显示
+     * 5. initSectionsOrThemesPage 栏目/主题 显示
+     * 6. initSectionsThemesListPage 栏目/主题 列表消息
      */
-    getStartTimeTSP: function(date) {
-        return +new Date(date + this.DATE_SUFFIX);
-    },
-    /**
-     * 加入消息至主页页面
-     * @param  {[type]} date 显示日期 xxxx-xx-xx
-     */
-    appendNews2Stories: function(storiesObj, date, type) {
-        if(!storiesObj) {
-            return;
-        }
+    initPage: {
+        initLatestPage: function() {
+            ZhihuDaily.loading.showLoading();
 
-        date = date || DateTools.getCurrentDateStr();
+            var newsObj = ZhihuDailyData.getLatestNewsObj();
+            var topNewsObj = newsObj.top_stories, topNewsLen = topNewsObj.length;
 
-        var storiesListDom = $('<ul/>').addClass('stories_list').attr('data-date', date).append($('<div class="stories_date">' + date + '</div>'));
-        var liTpl = '<li>' +
-            '   <a href="javascript:void(0);">' +
-            '       <div class="stories_desc"></div>' +
-            '       <div class="stories_ico"></div>' +
-            '   </a>' +
-            '</li>';
-        var item, tempLi, len = storiesObj.length;
+            var liTpl = '<li>' +
+                '    <a href="javascript:void(0);"><p></p></a>' +
+                '</li>',
+                aTpl = '<a href="javascript:void(0);"></a>',
+                imgSliderTpl = $('<div><ul></ul><div></div></div>').attr('id', 'img_slider');
 
-        if('hots' === type) {
+            for (var i = 0; i < topNewsLen; i++) {
+                var item = topNewsObj[i],
+                    li = $(liTpl),
+                    a = $(aTpl);
+
+                if(i === 0) {
+                    li.addClass('active');
+                    a.addClass('active');
+                }
+                li.css({
+                    background: 'url(' + item.image + ')'
+                })
+                .find('a').attr('data-id', item.id)
+                .find('p').text(item.title);
+
+                imgSliderTpl.find('ul').append(li);
+                imgSliderTpl.find('div').append(a);
+            }
+            $('.stories').prepend(imgSliderTpl);
+            ImgSlider.init();
+
+            ZhihuDaily.appendMore.appendNews2Stories(newsObj.stories);
+            // 用于判断滚动位置
+            $('.stories').parent().parent().addClass('stories_box');
+            // 判断最新消息时候可以触发滚动事件, 如果不可以多加载一天消息
+            window.setTimeout(function() {
+                if(BBUtil.isStoriesKeepLoading()) {
+                    ZhihuDaily.appendMore.appendPreDayNews($(document.querySelector('.stories_list:last-child')).attr('data-date'));
+                }
+            }, 200);
+
+            ZhihuDaily.loading.removeLoading();
+        },
+        initHotsPage: function() {
+            ZhihuDaily.loading.showLoading();
+            ZhihuDaily.appendMore.appendNews2Stories(ZhihuDailyData.getHotNewsObj().recent, '今日热门', 'hots');
+            ZhihuDaily.loading.removeLoading();
+        },
+        initSectionsPage: function() {
+            this.initSectionsOrThemesPage('sections');
+        },
+        initThemesPage: function() {
+            this.initSectionsOrThemesPage('themes');
+        },
+        initSectionsThemesListPage: function(obj) {
+            ZhihuDaily.loading.showLoading();
+            ZhihuDaily.isReading = true;
+
+            var params = obj.params,
+                type = params['data-type'],
+                id = params['data-id'],
+                rs = 'sections' === type ? ZhihuDailyData.getSectionObj(id) : ZhihuDailyData.getThemeObj(id),
+                stories = $('.stories');
+
+            stories.attr('data-type', type);
+            stories.attr('data-id', id);
+
+            // 如果是主题这需要再上方添加图片和编辑
+            if('themes' === type) {
+                var infoDoms = $('<div class="content_head_img" style="background: url(' + rs.background + ')">' +
+                    '    <div class="img_source">来源: ' + rs.image_source + '</div>' +
+                    '    <div class="img_description">' + rs.description + '</div>' +
+                    '</div>' +
+                    '<div class="stories_editors">' +
+                    '    <ul></ul>' +
+                    '</div>');
+                var ul = infoDoms.find('.stories_editors ul'), item;
+                for (var i = 0, len = rs.editors.length; i < len; i++) {
+                    item = rs.editors[i];
+                    // item.bio 简介
+                    ul.append($('<li><a target="_blank" href="' + (item.url || 'javascript:void(0);') + '"><img src="' + item.avatar + '"><p>' + (item.name || 'item.bio') + '</p></a></li>'));
+                }
+                stories.prepend(infoDoms)
+            }
+
+            ZhihuDaily.appendMore.appendNews2Stories(rs, rs.name, type);
+            // 用于判断滚动位置
+            stories.parent().parent().addClass('stories_box');
+            // 判断最新消息时候可以触发滚动事件, 如果不可以多加载一天消息
+            window.setTimeout(function() {
+                if(BBUtil.isStoriesKeepLoading()) {
+                    ZhihuDaily.appendMore.appendNextSectionsThemes($(document.querySelector('.stories_list:last-child')).attr('data-date'), id, type);
+                }
+            }, 200);
+
+            ZhihuDaily.isReading = false;
+            ZhihuDaily.loading.removeLoading();
+        },
+        initSectionsOrThemesPage: function(type) {
+            ZhihuDaily.loading.showLoading();
+
+            var ulDom = $('<ul/>').addClass('sections_themes_list');
+            var liTpl = '<li>' +
+                '    <a href="javascript: void(0);">' +
+                '        <p></p>' +
+                '        <div></div>' +
+                '    </a>' +
+                '</li>';
+            var rs = null;
+            if('themes' === type) {
+                rs = ZhihuDailyData.getThemesObj().others;
+            }else {
+                rs = ZhihuDailyData.getSectionsObj().data;
+            }
+            if(!rs) {
+                return;
+            }
+
+            var item, tempLi, len = rs.length;
             for (var i = 0; i < len; i++) {
-                item = storiesObj[i];
+                item = rs[i];
                 tempLi = $(liTpl);
-                tempLi.find('a').attr('data-id', item.news_id);
-                tempLi.find('.stories_desc').text(item.title);
-                tempLi.find('.stories_ico').css({
+
+                tempLi.find('a').attr('data-id', item.id).css({
                     background: 'url(' + item.thumbnail + ')'
                 });
-                storiesListDom.append(tempLi);
-            }
-        }
-        else if('sections' === type || 'themes' === type) {
-            var isThemes = 'themes' === type;
-            var stories = storiesObj.stories;
-            storiesListDom.attr('data-date', isThemes ? stories[stories.length - 1].id : storiesObj.timestamp);
+                tempLi.find('a p').text(item.name);
+                tempLi.find('a div').text(item.description === '' ? item.name : item.description);
 
-            if(!stories || !stories.length) {
-                if(!$(document.querySelector('.stories_list:last-child')).attr('data-date')) {
-                    return;
-                }
-                storiesListDom.find('.stories_date').text('已加载全部消息...');
-            }else {
-                len = stories.length;
+                ulDom.append(tempLi);
+            }
+            $('.sections_themes').append(ulDom).attr('data-type', type);
+
+            ZhihuDaily.loading.removeLoading();
+        },
+    },
+    /**
+     * 加载更多
+     * 1. appendNews2Stories 加载新闻到主页
+     * 2. appendPreDayNews 加载下一天的新闻到列表
+     * 3. appendNextSectionsThemes 加载更多 栏目/主题 新闻到列表
+     * 4. appendMoreComments 加载更多评论, 包括长短评论
+     */
+    appendMore: {
+        appendNews2Stories: function(storiesObj, date, type) {
+            if(!storiesObj) {
+                return;
+            }
+
+            date = date || DateTools.getCurrentDateStr();
+
+            var storiesListDom = $('<ul/>').addClass('stories_list').attr('data-date', date).append($('<div class="stories_date">' + date + '</div>'));
+            var liTpl = '<li>' +
+                '   <a href="javascript:void(0);">' +
+                '       <div class="stories_desc"></div>' +
+                '       <div class="stories_ico"></div>' +
+                '   </a>' +
+                '</li>';
+            var item, tempLi, len = storiesObj.length;
+
+            if('hots' === type) {
                 for (var i = 0; i < len; i++) {
-                    item = stories[i];
+                    item = storiesObj[i];
                     tempLi = $(liTpl);
-                    tempLi.find('a').attr('data-id', item.id);
-                    tempLi.find('.stories_desc').text((isThemes ? '' : (item.date + '，')) + item.title);
-                    if(item.images && item.images[0]) {
-                        tempLi.find('.stories_ico').css({
-                            background: 'url(' + item.images[0] + ')'
-                        });
-                    }
+                    tempLi.find('a').attr('data-id', item.news_id);
+                    tempLi.find('.stories_desc').text(item.title);
+                    tempLi.find('.stories_ico').css({
+                        background: 'url(' + item.thumbnail + ')'
+                    });
                     storiesListDom.append(tempLi);
                 }
             }
-        }
-        else {
-            for (var i = 0; i < len; i++) {
-                item = storiesObj[i];
-                tempLi = $(liTpl);
-                tempLi.find('a').attr('data-id', item.id);
-                tempLi.find('.stories_desc').text(item.title);
-                tempLi.find('.stories_ico').css({
-                    background: 'url(' + item.images[0] + ')'
-                });
-                storiesListDom.append(tempLi);
+            else if('sections' === type || 'themes' === type) {
+                var isThemes = 'themes' === type;
+                var stories = storiesObj.stories;
+                storiesListDom.attr('data-date', isThemes ? stories[stories.length - 1].id : storiesObj.timestamp);
+
+                if(!stories || !stories.length) {
+                    if(!$(document.querySelector('.stories_list:last-child')).attr('data-date')) {
+                        return;
+                    }
+                    storiesListDom.find('.stories_date').text('已加载全部消息...');
+                }else {
+                    len = stories.length;
+                    for (var i = 0; i < len; i++) {
+                        item = stories[i];
+                        tempLi = $(liTpl);
+                        tempLi.find('a').attr('data-id', item.id);
+                        tempLi.find('.stories_desc').text((isThemes ? '' : (item.date + '，')) + item.title);
+                        if(item.images && item.images[0]) {
+                            tempLi.find('.stories_ico').css({
+                                background: 'url(' + item.images[0] + ')'
+                            });
+                        }
+                        storiesListDom.append(tempLi);
+                    }
+                }
             }
-        }
-
-        $('.stories').append(storiesListDom);
-    },
-    /**
-     * 主页下滑获取前一天数据并显示
-     * @param  {[type]} crtDate 当前日期 xxxx-xx-xx
-     */
-    appendPreDayNews: function(crtDate) {
-        this.showLoading();
-        this.isReading = true;
-
-        var preDate = DateTools.getPreDateStr(crtDate);
-        this.appendNews2Stories(ZhihuDailyData.getBeforeNewsObj(preDate).stories, preDate);
-
-        this.isReading = false;
-        this.removeLoading();
-    },
-    /**
-     * 初始化最新消息列表
-     */
-    initLatestPage: function() {
-        this.showLoading();
-        var newsObj = ZhihuDailyData.getLatestNewsObj();
-
-        // top 消息填充
-        var topNewsObj = newsObj.top_stories, topNewsLen = topNewsObj.length;
-        var liTpl = '<li>' +
-            '    <a href="javascript:void(0);"><p></p></a>' +
-            '</li>',
-            aTpl = '<a href="javascript:void(0);"></a>',
-            imgSliderTpl = $('<div><ul></ul><div></div></div>').attr('id', 'img_slider');
-
-        for (var i = 0; i < topNewsLen; i++) {
-            var item = topNewsObj[i],
-                li = $(liTpl),
-                a = $(aTpl);
-
-            if(i === 0) {
-                li.addClass('active');
-                a.addClass('active');
+            else {
+                for (var i = 0; i < len; i++) {
+                    item = storiesObj[i];
+                    tempLi = $(liTpl);
+                    tempLi.find('a').attr('data-id', item.id);
+                    tempLi.find('.stories_desc').text(item.title);
+                    tempLi.find('.stories_ico').css({
+                        background: 'url(' + item.images[0] + ')'
+                    });
+                    storiesListDom.append(tempLi);
+                }
             }
-            li.css({
-                background: 'url(' + item.image + ')'
-            })
-            .find('a').attr('data-id', item.id)
-            .find('p').text(item.title);
 
-            imgSliderTpl.find('ul').append(li);
-            imgSliderTpl.find('div').append(a);
-        }
-        $('.stories').prepend(imgSliderTpl);
-        ImgSlider.init();
+            $('.stories').append(storiesListDom);
+        },
+        appendPreDayNews: function(crtDate) {
+            ZhihuDaily.loading.showLoading();
+            ZhihuDaily.isReading = true;
 
-        this.appendNews2Stories(newsObj.stories);
-        // 用于判断滚动位置
-        $('.stories').parent().parent().addClass('stories_box');
-        // 判断最新消息时候可以触发滚动事件, 如果不可以多加载一天消息
-        window.setTimeout(function() {
-            if(this.isStoriesKeepLoading()) {
-                this.appendPreDayNews($(document.querySelector('.stories_list:last-child')).attr('data-date'));
+            var preDate = DateTools.getPreDateStr(crtDate);
+            this.appendNews2Stories(ZhihuDailyData.getBeforeNewsObj(preDate).stories, preDate);
+
+            ZhihuDaily.isReading = false;
+            ZhihuDaily.loading.removeLoading();
+        },
+        appendNextSectionsThemes: function(timestamp, id, type) {
+            ZhihuDaily.loading.showLoading();
+            ZhihuDaily.isReading = true;
+
+            var rs = 'sections' === type ? ZhihuDailyData.getBeforeSectionObj(id, timestamp) : ZhihuDailyData.getBeforeThemeObj(id, timestamp);
+            this.appendNews2Stories(rs, rs.name || $(document.querySelector('.stories_list .stories_date')).text(), type);
+
+            ZhihuDaily.isReading = false;
+            ZhihuDaily.loading.removeLoading();
+        },
+        appendMoreComments: function(crt) {
+            var boxH = App.BB_SCREEN_HEIGHT;
+            var topH = $('.comments_mask .content_box_wrapper').scrollTop();
+            var ul = crt.find('ul');
+            var contentH = ul.height();
+
+            if(!ZhihuDaily.isReading && boxH + topH + ZhihuDaily.LOADING_RES_HEIGHT >= contentH && !ul.attr('is_load_end')) {
+                ZhihuDaily.viewer.viewComments($('.comments_mask .content_box').attr('data-id'),
+                    crt.find('ul li:last-child').attr('data-id'),
+                    crt.attr('id') === 'comments_info_box_long');
             }
-        }.bind(this), 200);
-
-        this.removeLoading();
-    },
-    initHotsPage: function() {
-        this.showLoading();
-
-        this.appendNews2Stories(ZhihuDailyData.getHotNewsObj().recent, '今日热门', 'hots');
-
-        this.removeLoading();
-    },
-    initSectionsPage: function() {
-        this.initSectionsOrThemesPage('sections');
-    },
-    initThemesPage: function() {
-        this.initSectionsOrThemesPage('themes');
-    },
-    initSectionsThemesListPage: function(obj) {
-        this.showLoading();
-        this.isReading = true;
-
-        var params = obj.params,
-            type = params['data-type'],
-            id = params['data-id'],
-            rs = 'sections' === type ? ZhihuDailyData.getSectionObj(id) : ZhihuDailyData.getThemeObj(id),
-            stories = $('.stories');
-
-        stories.attr('data-type', type);
-        stories.attr('data-id', id);
-
-        // 如果是主题这需要再上方添加图片和编辑
-        if('themes' === type) {
-            var infoDoms = $('<div class="content_head_img" style="background: url(' + rs.background + ')">' +
-                '    <div class="img_source">来源: ' + rs.image_source + '</div>' +
-                '    <div class="img_description">' + rs.description + '</div>' +
-                '</div>' +
-                '<div class="stories_editors">' +
-                '    <ul></ul>' +
-                '</div>');
-            var ul = infoDoms.find('.stories_editors ul'), item;
-            for (var i = 0, len = rs.editors.length; i < len; i++) {
-                item = rs.editors[i];
-                // item.bio 简介
-                ul.append($('<li><a target="_blank" href="' + (item.url || 'javascript:void(0);') + '"><img src="' + item.avatar + '"><p>' + (item.name || 'item.bio') + '</p></a></li>'));
-            }
-            stories.prepend(infoDoms)
-        }
-
-        this.appendNews2Stories(rs, rs.name, type);
-        // 用于判断滚动位置
-        stories.parent().parent().addClass('stories_box');
-        // 判断最新消息时候可以触发滚动事件, 如果不可以多加载一天消息
-        window.setTimeout(function() {
-            if(this.isStoriesKeepLoading()) {
-                this.appendNextSectionsThemes($(document.querySelector('.stories_list:last-child')).attr('data-date'), id, type);
-            }
-        }.bind(this), 200);
-
-        this.isReading = false;
-        this.removeLoading();
-    },
-    appendNextSectionsThemes: function(timestamp, id, type) {
-        this.showLoading();
-        this.isReading = true;
-
-        var rs = 'sections' === type ? ZhihuDailyData.getBeforeSectionObj(id, timestamp) : ZhihuDailyData.getBeforeThemeObj(id, timestamp);
-        this.appendNews2Stories(rs, rs.name || $(document.querySelector('.stories_list .stories_date')).text(), type);
-
-        this.isReading = false;
-        this.removeLoading();
-    },
-    /**
-     * 初始化栏目或者主题总览
-     * @type {[string]} sections 栏目总览, themes 主题总览
-     */
-    initSectionsOrThemesPage: function(type) {
-        this.showLoading();
-
-        var ulDom = $('<ul/>').addClass('sections_themes_list');
-        var liTpl = '<li>' +
-            '    <a href="javascript: void(0);">' +
-            '        <p></p>' +
-            '        <div></div>' +
-            '    </a>' +
-            '</li>';
-        var rs = null;
-        if('themes' === type) {
-            rs = ZhihuDailyData.getThemesObj().others;
-        }else {
-            rs = ZhihuDailyData.getSectionsObj().data;
-        }
-        if(!rs) {
-            return;
-        }
-
-        var item, tempLi, len = rs.length;
-        for (var i = 0; i < len; i++) {
-            item = rs[i];
-            tempLi = $(liTpl);
-
-            tempLi.find('a').attr('data-id', item.id).css({
-                background: 'url(' + item.thumbnail + ')'
-            });
-            tempLi.find('a p').text(item.name);
-            tempLi.find('a div').text(item.description === '' ? item.name : item.description);
-
-            ulDom.append(tempLi);
-        }
-        $('.sections_themes').append(ulDom).attr('data-type', type);
-
-        bb.refresh();
-        this.removeLoading();
-    },
-    isStoriesKeepLoading: function() {
-        return $('.stories').height() + this.LOADING_RES_HEIGHT <= $('.stories_box').height();
-    },
-    onStoriesScreenScroll: function(e) {
-        var boxH = App.BB_SCREEN_HEIGHT - bb.screen.getActionBarHeight();
-        var topH = $(e.currentTarget).scrollTop();
-        var contentH = $('.stories').height();
-
-        if(!this.isReading && boxH + topH + this.LOADING_RES_HEIGHT >= contentH) {
-            var dataType = $('.stories').attr('data-type');
-            if(dataType === 'sections' || dataType === 'themes') {
-                this.appendNextSectionsThemes($(document.querySelector('.stories_list:last-child')).attr('data-date'), $('.stories').attr('data-id'), dataType);
-            }else {
-                this.appendPreDayNews($(document.querySelector('.stories_list:last-child')).attr('data-date'));
-            }
-        }
-    },
-    showLoading: function() {
-        if(this.IS_SHOW_LOADING) {
-            $('body').append($('<div class="loading">loading...</div>'));
-            $('.loading').fadeIn();
-
-            $('.loading').onclick = function(e) {
-                ZhihuDaily.removeLoading();
-            };
-        }
-    },
-    removeLoading: function() {
-        if(this.IS_SHOW_LOADING) {
-            var loading = $('.loading');
-            loading.fadeOut(function() {
-                loading.remove();
-            });
         }
     },
     /**
      * 查看内容
+     * 1. viewNews 查看新闻内容
+     * 2. viewComments 查看评论内容
      */
-    viewNews: function(id) {
-        this.showLoading();
-        this.addMask();
+    viewer: {
+        viewNews: function(id) {
+            ZhihuDaily.loading.showLoading();
+            ZhihuDaily.mask.addMask();
 
-        var data = ZhihuDailyData.getNewsObj(id);
-        var commentsdata = ZhihuDailyData.getCommentsObj(id);
-        var cssLen = data.css.length, jsLen = data.js.length;
-        var lastCssIdIndex = 0, haveCss = false;
+            var data = ZhihuDailyData.getNewsObj(id);
+            var commentsdata = ZhihuDailyData.getCommentsObj(id);
+            var cssLen = data.css.length, jsLen = data.js.length;
+            var lastCssIdIndex = 0, haveCss = false;
 
-        if(cssLen > 0) {
-            haveCss = true;
-            for (var i = 0; i < cssLen; i++) {
-                $('.mask').prepend($('<link rel="stylesheet" type="text/css" id="view_news_' + i + '" href="' + data.css[i] + '" />'));
-                lastCssIdIndex = i;
+            if(cssLen > 0) {
+                haveCss = true;
+                for (var i = 0; i < cssLen; i++) {
+                    $('.mask').prepend($('<link rel="stylesheet" type="text/css" id="view_news_' + i + '" href="' + data.css[i] + '" />'));
+                    lastCssIdIndex = i;
+                }
             }
-        }
-        if(jsLen > 0) {
-            for (var i = 0; i < jsLen; i++) {
-                $('.mask').prepend($('<script type="text/javascript" src="' + data.js[i] + '"></script>'));
-            }
-        }
-
-        var cb = $('.mask .content_box').css({
-            display: 'none'
-        });
-
-        // 解决闪烁问题
-        if(haveCss) {
-            var isLoadCss = false;
-            document.querySelector('#view_news_' + lastCssIdIndex).onload = function() {
-                isLoadCss = true;
-                cb.fadeIn();
+            if(jsLen > 0) {
+                for (var i = 0; i < jsLen; i++) {
+                    $('.mask').prepend($('<script type="text/javascript" src="' + data.js[i] + '"></script>'));
+                }
             }
 
-            window.setTimeout(function() {
-                if(!isLoadCss) {
+            var cb = $('.mask .content_box').css({
+                display: 'none'
+            });
+
+            // 解决闪烁问题
+            if(haveCss) {
+                var isLoadCss = false;
+                document.querySelector('#view_news_' + lastCssIdIndex).onload = function() {
+                    isLoadCss = true;
                     cb.fadeIn();
                 }
-            }, 2000);
-        }
 
-        var imgTpl = '<div class="content_head_img">' +
-                '    <div class="img_source">来源: ' + data.image_source + '</div>' +
-                '    <div class="comments_info" data-id="' + id + '">' +
-                '        <div>' +
-                '            <img src="img/stories_popularity.png">' +
-                '            <span>点赞数: ' + commentsdata.popularity + '</span>' +
-                '        </div>' +
-                '        <div>' +
-                '            <img src="img/stories_long_commets.png">' +
-                '            <span>长评数: ' + commentsdata.long_comments + '</span>' +
-                '        </div>' +
-                '        <div>' +
-                '            <img src="img/stories_short_commets.png">' +
-                '            <span>短评数: ' + commentsdata.short_comments + '</span>' +
-                '        </div>' +
-                '    </div>' +
-                '</div>';
+                window.setTimeout(function() {
+                    if(!isLoadCss) {
+                        cb.fadeIn();
+                    }
+                }, 2000);
+            }
 
-        var bodyHtml = data.body;
+            var imgTpl = '<div class="content_head_img">' +
+                    '    <div class="img_source">来源: ' + data.image_source + '</div>' +
+                    '    <div class="comments_info" data-id="' + id + '">' +
+                    '        <div>' +
+                    '            <img src="img/stories_popularity.png">' +
+                    '            <span>点赞数: ' + commentsdata.popularity + '</span>' +
+                    '        </div>' +
+                    '        <div>' +
+                    '            <img src="img/stories_long_commets.png">' +
+                    '            <span>长评数: ' + commentsdata.long_comments + '</span>' +
+                    '        </div>' +
+                    '        <div>' +
+                    '            <img src="img/stories_short_commets.png">' +
+                    '            <span>短评数: ' + commentsdata.short_comments + '</span>' +
+                    '        </div>' +
+                    '    </div>' +
+                    '</div>';
 
-        if(!bodyHtml) {
-            if(data.share_url) {
-                cb.append($('<a class="open_url" target="_blank" href="' + data.share_url + '">' +
-                    '    <div>进入</div>' +
-                    '</a>'));
+            var bodyHtml = data.body;
+
+            if(!bodyHtml) {
+                if(data.share_url) {
+                    cb.append($('<a class="open_url" target="_blank" href="' + data.share_url + '">' +
+                        '    <div>进入</div>' +
+                        '</a>'));
+                }else {
+                    $('.mask .title').text('无法查看此类型文章内容, 待更新...');
+                    return;
+                }
             }else {
-                $('.mask .title').text('无法查看此类型文章内容, 待更新...');
+                cb.html(data.body);
+            }
+
+            if(data.image) {
+                cb.prepend($(imgTpl).css({
+                    background: 'url(' + data.image + ')'
+                }));
+            }else {
+                cb.prepend($('<div></div>').css({
+                    height: '200px',
+                    position: 'relative'
+                })
+                .append($(imgTpl).find('.comments_info').css({
+                    bottom: 0
+                })));
+            }
+
+            $('.mask .title').text(data.title);
+
+            BBUtil.link2Blank();
+            ZhihuDaily.loading.removeLoading();
+        },
+        viewComments: function(id, lastId, isLongComments) {
+            if(!id) {
                 return;
             }
-        }else {
-            cb.html(data.body);
-        }
+            var rs = null;
+            ZhihuDaily.isReading = true;
+            ZhihuDaily.loading.showLoading();
 
-        if(data.image) {
-            cb.prepend($(imgTpl).css({
-                background: 'url(' + data.image + ')'
-            }));
-        }else {
-            cb.prepend($('<div></div>').css({
-                height: '200px',
-                position: 'relative'
-            })
-            .append($(imgTpl).find('.comments_info').css({
-                bottom: 0
-            })));
-        }
-
-        $('.mask .title').text(data.title);
-
-        this.link2Blank();
-        this.removeLoading();
-    },
-    appendCommentsFrame: function() {
-        // 按钮
-        $('.comments_mask .title').append($('<div class="show_short_comments_btn show_comments_btn active">短评论</div>' +
-            '<div class="show_long_comments_btn show_comments_btn">长评论</div>'));
-        // 长短评论 box
-        $('.comments_mask .content_box').append($('<div class="comments_info_box" id="comments_info_box_short"><ul></ul></div>' +
-            '<div class="comments_info_box" id="comments_info_box_long"><ul></ul></div>'));
-    },
-    /**
-     * 当前浏览的短评类型
-     */
-    isLongComments: false,
-    changeCommentsType: function(crt) {
-        $('.show_comments_btn').removeClass('active');
-        crt.addClass('active');
-
-        var sBox = $('#comments_info_box_short'),
-            lBox = $('#comments_info_box_long'),
-            crtBox = null;
-        if(crt.hasClass('show_long_comments_btn')) {
-            this.isLongComments = true;
-            sBox.hide();
-            lBox.show();
-            crtBox = lBox;
-        }else {
-            this.isLongComments = false;
-            lBox.hide();
-            sBox.show();
-            crtBox = sBox;
-        }
-        // 判断是否已经初始化
-        if(!crtBox.attr('data-init')) {
-            this.viewComments($('.comments_mask .content_box').attr('data-id'), false, this.isLongComments);
-        }
-    },
-    loadMoreComments: function(crt) {
-        var boxH = App.BB_SCREEN_HEIGHT;
-        var topH = $('.comments_mask .content_box_wrapper').scrollTop();
-        var ul = crt.find('ul');
-        var contentH = ul.height();
-
-        if(!this.isReading && boxH + topH + this.LOADING_RES_HEIGHT >= contentH && !ul.attr('is_load_end')) {
-            this.viewComments($('.comments_mask .content_box').attr('data-id'),
-                crt.find('ul li:last-child').attr('data-id'),
-                crt.attr('id') === 'comments_info_box_long');
-        }
-    },
-    /**
-     * 查看评论内容
-     */
-    viewComments: function(id, lastId, isLongComments) {
-        if(!id) {
-            return;
-        }
-        var rs = null;
-        this.isReading = true;
-        this.showLoading();
-
-        // 默认获取短评论
-        if(isLongComments) {
-            rs = ZhihuDailyData.getLongCommentsList(id, lastId);
-        }else {
-            rs = ZhihuDailyData.getShortCommentsList(id, lastId);
-        }
-
-        var comments = rs.comments;
-        var commentsInfoBoxUl = null;
-
-        if(isLongComments) {
-            commentsInfoBoxUl = $('#comments_info_box_long ul');
-        }else {
-            commentsInfoBoxUl = $('#comments_info_box_short ul');
-        }
-
-        commentsInfoBoxUl.parent().attr('data-init', '1');
-
-        if(!comments.length) {
-            this.isReading = false;
-            this.removeLoading();
-            // 如果加载完成则加上标志
-            commentsInfoBoxUl.append($('<li>' +
-                    '<div class="comments_info_avatar"></div>' +
-                    '<div class="comments_info_desc"><div class="comments_info_author">已经全部加载完成!</div></div>' +
-                    '</li>')).attr('is_load_end', 1);
-            return;
-        }
-
-        var item = null, tsmp, lisHTML = '', replyTo = '';
-        for (var i = 0, len = comments.length; i < len; i++) {
-            item = comments[i];
-
-            if(item.reply_to) {
-                if(item.reply_to.status === 1) { // 评论已删除
-                    replyTo = '<div class="comments_r_info_content"><span></span>' + item.reply_to.error_msg + '</div>'
-                }else {
-                    replyTo = '<div class="comments_r_info_content"><span>//' + item.reply_to.author + ': </span>' + item.reply_to.content + '</div>';
-                }
+            // 默认获取短评论
+            if(isLongComments) {
+                rs = ZhihuDailyData.getLongCommentsList(id, lastId);
+            }else {
+                rs = ZhihuDailyData.getShortCommentsList(id, lastId);
             }
 
-            tsmp = item.time < 10000000000 ? (item.time * 1000) : item.time;
+            var comments = rs.comments;
+            var commentsInfoBoxUl = null;
 
-            lisHTML += '<li data-id="' + item.id + '">' +
-                '    <div class="comments_info_avatar"><img src="' + item.avatar + '"></div>' +
-                '    <div class="comments_info_desc">' +
-                '        <div class="comments_info_author">' + item.author + '<span class="comments_info_content_liks">' + item.likes + '</span></div>' +
-                '        <div class="comments_info_content">' + item.content + '</div>' + replyTo +
-                '        <div class="comments_info_time">' + DateTools.getTime(new Date(tsmp)) + '</div>' +
-                '    </div>' +
-                '</li>';
+            if(isLongComments) {
+                commentsInfoBoxUl = $('#comments_info_box_long ul');
+            }else {
+                commentsInfoBoxUl = $('#comments_info_box_short ul');
+            }
+
+            commentsInfoBoxUl.parent().attr('data-init', '1');
+
+            if(!comments.length) {
+                ZhihuDaily.isReading = false;
+                ZhihuDaily.loading.removeLoading();
+                // 如果加载完成则加上标志
+                commentsInfoBoxUl.append($('<li>' +
+                        '<div class="comments_info_avatar"></div>' +
+                        '<div class="comments_info_desc"><div class="comments_info_author">已经全部加载完成!</div></div>' +
+                        '</li>')).attr('is_load_end', 1);
+                return;
+            }
+
+            var item = null, tsmp, lisHTML = '', replyTo = '';
+            for (var i = 0, len = comments.length; i < len; i++) {
+                item = comments[i];
+
+                if(item.reply_to) {
+                    if(item.reply_to.status === 1) { // 评论已删除
+                        replyTo = '<div class="comments_r_info_content"><span></span>' + item.reply_to.error_msg + '</div>'
+                    }else {
+                        replyTo = '<div class="comments_r_info_content"><span>//' + item.reply_to.author + ': </span>' + item.reply_to.content + '</div>';
+                    }
+                }
+
+                tsmp = item.time < 10000000000 ? (item.time * 1000) : item.time;
+
+                lisHTML += '<li data-id="' + item.id + '">' +
+                    '    <div class="comments_info_avatar"><img src="' + item.avatar + '"></div>' +
+                    '    <div class="comments_info_desc">' +
+                    '        <div class="comments_info_author">' + item.author + '<span class="comments_info_content_liks">' + item.likes + '</span></div>' +
+                    '        <div class="comments_info_content">' + item.content + '</div>' + replyTo +
+                    '        <div class="comments_info_time">' + DateTools.getTime(new Date(tsmp)) + '</div>' +
+                    '    </div>' +
+                    '</li>';
+            }
+            commentsInfoBoxUl.append($(lisHTML)).parent().parent().attr('data-id', id);
+
+            ZhihuDaily.loading.removeLoading();
+            ZhihuDaily.isReading = false;
         }
-        commentsInfoBoxUl.append($(lisHTML)).parent().parent().attr('data-id', id);
-
-        this.removeLoading();
-        this.isReading = false;
     },
     /**
-     * 在当前 screen 中加入弹出层
+     * 事件监听器
+     * 1. onStoriesBoxScroll 主页滚动滚动监听器
+     * 2. onStoriesScreenScrollExer 主页滚动滚动监听执行者
+     * 3. onCommentsListener 切换长短评按钮监听, 滚动加载评论监听
+     * 4. onChangeCommentsTypeExer 切换长短评按钮监执行者
      */
-    addMask: function(clazz) {
-        $(bb.screen.currentScreen).append($('<div class="mask ' + (typeof clazz === 'undefined' ? '' : clazz) + '">' +
-            '    <div class="head">' +
-            '        <div class="title"></div>' +
-            '        <button class="close_btn">X</button>' +
-            '    </div>' +
-            '    <div class="content_box_wrapper">' +
-            '       <div class="content_box"></div>' +
-            '   </div>' +
-            '</div>'));
+    storieListener: {
+        onStoriesBoxScroll: function() {
+            $('.stories_box').on('scroll', function(e) {
+                e.preventDefault();
+                this.onStoriesScreenScrollExer(e);
+            }.bind(this));
+        },
+        onStoriesScreenScrollExer: function(e) {
+            var boxH = App.BB_SCREEN_HEIGHT - bb.screen.getActionBarHeight();
+            var topH = $(e.currentTarget).scrollTop();
+            var contentH = $('.stories').height();
 
-        $('.mask:last-child').fadeIn();
+            if(!ZhihuDaily.isReading && boxH + topH + ZhihuDaily.LOADING_RES_HEIGHT >= contentH) {
+                var dataType = $('.stories').attr('data-type');
+                if(dataType === 'sections' || dataType === 'themes') {
+                    ZhihuDaily.appendMore.appendNextSectionsThemes($(document.querySelector('.stories_list:last-child')).attr('data-date'), $('.stories').attr('data-id'), dataType);
+                }else {
+                    ZhihuDaily.appendMore.appendPreDayNews($(document.querySelector('.stories_list:last-child')).attr('data-date'));
+                }
+            }
+        },
+        onCommentsListener: function() {
+            // 监听切换事件
+            $('.comments_mask .show_comments_btn').on('click', function(e) {
+                var crt = $(e.currentTarget);
+                if(!crt.hasClass('active')) {
+                    this.onChangeCommentsTypeExer(crt);
+                }
+            }.bind(this));
+
+            // 滚动加载更多
+            $('.comments_mask .content_box_wrapper').on('scroll', function(e) {
+                e.preventDefault();
+                ZhihuDaily.isLongComments ? ZhihuDaily.appendMore.appendMoreComments($('#comments_info_box_long')) : ZhihuDaily.appendMore.appendMoreComments($('#comments_info_box_short'));
+            });
+        },
+        onChangeCommentsTypeExer: function(crt) {
+            $('.show_comments_btn').removeClass('active');
+            crt.addClass('active');
+
+            var sBox = $('#comments_info_box_short'),
+                lBox = $('#comments_info_box_long'),
+                crtBox = null;
+            if(crt.hasClass('show_long_comments_btn')) {
+                ZhihuDaily.isLongComments = true;
+                sBox.hide();
+                lBox.show();
+                crtBox = lBox;
+            }else {
+                ZhihuDaily.isLongComments = false;
+                lBox.hide();
+                sBox.show();
+                crtBox = sBox;
+            }
+            // 判断是否已经初始化
+            if(!crtBox.attr('data-init')) {
+                ZhihuDaily.viewer.viewComments($('.comments_mask .content_box').attr('data-id'), false, ZhihuDaily.isLongComments);
+            }
+        }
     },
-    link2Blank: function() {
-        $('.content_box a').attr('target', '_blank');
+    /**
+     * loading 页面显示与关闭
+     * 1. showLoading 显示
+     * 2. removeLoading 关闭
+     */
+    loading: {
+        showLoading: function() {
+            if(ZhihuDaily.IS_SHOW_LOADING) {
+                $('body').append($('<div class="loading">loading...</div>'));
+                $('.loading').fadeIn();
+
+                $('.loading').onclick = function(e) {
+                    this.removeLoading();
+                };
+            }
+        },
+        removeLoading: function() {
+            if(ZhihuDaily.IS_SHOW_LOADING) {
+                var loading = $('.loading');
+                loading.fadeOut(function() {
+                    loading.remove();
+                });
+            }
+        }
     },
+    /**
+     * 弹出层操作
+     * 1. addMask
+     * 2. addCommentsFrameToMask
+     */
+    mask: {
+        addMask: function(clazz) {
+            $(bb.screen.currentScreen).append($('<div class="mask ' + (typeof clazz === 'undefined' ? '' : clazz) + '">' +
+                '    <div class="head">' +
+                '        <div class="title"></div>' +
+                '        <button class="close_btn">X</button>' +
+                '    </div>' +
+                '    <div class="content_box_wrapper">' +
+                '       <div class="content_box"></div>' +
+                '   </div>' +
+                '</div>'));
+
+            $('.mask:last-child').fadeIn();
+        },
+        addCommentsFrameToMask: function() {
+            // 按钮
+            $('.comments_mask .title').append($('<div class="show_short_comments_btn show_comments_btn active">短评论</div>' +
+                '<div class="show_long_comments_btn show_comments_btn">长评论</div>'));
+            // 长短评论 box
+            $('.comments_mask .content_box').append($('<div class="comments_info_box" id="comments_info_box_short"><ul></ul></div>' +
+                '<div class="comments_info_box" id="comments_info_box_long"><ul></ul></div>'));
+        }
+    },
+    /**
+     * 选择日期部分
+     * 1. initPanel 初始化选择器面板
+     * 2. initEvent 注册事件
+     * 3. validateDate 验证日期
+     * 4. viewHisInfo 调用显示
+     */
     changeDate: {
         CLASS_NAME: "change_date_mask",
         initPanel: function() {
             // 添加 Mask 提供显示选择日期
-            ZhihuDaily.addMask(this.CLASS_NAME);
+            ZhihuDaily.mask.addMask(this.CLASS_NAME);
 
             var panel = $('.' + this.CLASS_NAME),
                 titleBox = panel.find('.title'),
@@ -878,20 +893,20 @@ var ZhihuDaily = {
                     stories.attr('data-type', type);
                     stories.attr('data-id', id);
 
-                    ZhihuDaily.appendNextSectionsThemes(+new Date(date) / 1000, id, type);
+                    ZhihuDaily.appendMore.appendNextSectionsThemes(+new Date(date) / 1000, id, type);
                 }else {
                     BBUtil.alert('此类型不支持查看历史消息!', '提示');
                     return;
                 }
             }else if('latest' === screenFlag) {
-                ZhihuDaily.appendPreDayNews(DateTools.getNextDateStr(new Date(date)));
+                ZhihuDaily.appendMore.appendPreDayNews(DateTools.getNextDateStr(new Date(date)));
             }else {
                 BBUtil.alert('此类型不支持查看历史消息!', '提示');
                 return;
             }
 
             stories.parent().parent().addClass('stories_box');
-            App.storiesBoxOnScroll();
+            ZhihuDaily.storieListener.onStoriesBoxScroll();
         }
     }
 }
@@ -980,6 +995,12 @@ var BBUtil = {
             .on('click', function() {
                 $(this).remove();
         }));
+    },
+    link2Blank: function() {
+        $('.content_box a').attr('target', '_blank');
+    },
+    isStoriesKeepLoading: function() {
+        return $('.stories').height() + ZhihuDaily.LOADING_RES_HEIGHT <= $('.stories_box').height();
     }
 }
 
