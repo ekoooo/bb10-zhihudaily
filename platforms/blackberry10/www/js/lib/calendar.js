@@ -16,10 +16,10 @@
         yNow = 0,       // 当前相对年份
         silde = false;  // 日历列表正在滑动
     
-    var oCalenWrap = create('div', {"class" : 'calendar'}),           // 最大父级
-        oCalenMask = create('div', {"class" : 'calendar-mask'}),           // 灰快遮罩
-        oCalen = create('div', {"class" : 'calendar-content'}),                    // 日历box
-        calendarList = create('div', {"class" : 'calendar-list'}),         // 日历列表
+    var oCalenWrap = null,           // 最大父级
+        oCalenMask = null,           // 灰快遮罩
+        oCalen = null,               // 日历box
+        calendarList = null,         // 日历列表
 
         past,           // 过去的时间是否可选
         calenTitles,    // 年，月标题
@@ -35,6 +35,11 @@
         selectMonthBox; // 月份选择
 
     function Calendar(){
+        oCalenWrap = create('div', {"class" : 'calendar'});
+        oCalenMask = create('div', {"class" : 'calendar-mask'});
+        oCalen = create('div', {"class" : 'calendar-content'});
+        calendarList = create('div', {"class" : 'calendar-list'});
+        
         var oDate       = new Date();
         this.hours      = false;
         this.hoursPast  = false;
@@ -50,6 +55,10 @@
 
     // 初始化
     Calendar.prototype.init = function(){
+        if(document.querySelector('.calendar')) {
+            document.querySelector('.calendar').remove();
+        }
+
         var $this = this;
 
         var aCalendars = getElement(document, '.calendars');

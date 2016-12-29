@@ -603,8 +603,9 @@ div[data-bb-type="screen"] img {
     bottom: 8rem;
     font-size: 2rem;
     margin: 1rem 0 0 1rem;
-    width: 94.5%;
+    width: 97%;
     height: 6rem;
+    text-align: center;
 }
 
 #change_date_btn {

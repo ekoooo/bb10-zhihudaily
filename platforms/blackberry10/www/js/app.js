@@ -845,9 +845,7 @@ var ZhihuDaily = {
             
             contentBox.append(ipt).append(btn);
 
-            if(!this.calendar) {
-                this.calendar = new Calendar(); // 初始化日历
-            }
+            this.calendar = new Calendar(); // 初始化日历
 
             this.initEvent();
         },
