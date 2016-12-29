@@ -12,6 +12,8 @@
   <access origin="http://zhimg.com" subdomains="true"/>
   <access origin="https://zhihu.com" subdomains="true"/>
   <access origin="https://zhimg.com" subdomains="true"/>
+  <access origin="http://alicdn.com" subdomains="true"/>
+  <access origin="http://youku.com" subdomains="true"/>
   <description>bb10 知乎日报，webworks 版本</description>
   <author email="954408050@qq.com" href="github.com/ekoooo">liuwanlin</author>
   <license href="MIT"/>

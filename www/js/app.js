@@ -1,13 +1,14 @@
 var App = {
     BB_SCREEN_HEIGHT: 0,
     initApp: function() {
-        bb.pushScreen('app.html', 'latest');
+        ShowScreen.latest();
         this.attachEvent();
     },
     attachEvent: function() {
         $(document).on('bb_ondomready', function(e, obj) {
-            // 在当前 screen 中设置当前 id, 因为一个模板多个地方使用, 需要一个标志
-            $(bb.screen.currentScreen).attr('data-screen-flag', obj.id);
+            BBUtil.setScreenFlag(obj.id);
+
+            App.clearOldScreen();
             App.BB_SCREEN_HEIGHT = $('.bb-screen').height();
 
             switch (obj.id) {
@@ -27,12 +28,10 @@ var App = {
                 case 'sections_themes_list':
                     ZhihuDaily.initPage.initSectionsThemesListPage(obj);
                     ZhihuDaily.storieListener.onStoriesBoxScroll();
-                    ActionBarMgr.runing = false;
                     break;
                 case 'change_date':
-                    $(bb.screen.currentScreen).attr('data-screen-flag', obj.params['screenFlag']); // data-screen-flag 重置
+                    BBUtil.setScreenFlag(obj.params['screenFlag']); // data-screen-flag 重置
                     ZhihuDaily.changeDate.viewHisInfo(obj);
-                    ActionBarMgr.runing = false;
                     break;
                 default:
                     break;
@@ -81,6 +80,19 @@ var App = {
 
             ZhihuDaily.storieListener.onCommentsListener();
         });
+    },
+    clearOldScreen: function() {
+        var bbScreen = $('.bb-screen'), 
+            sLen = bbScreen.length;
+
+        if(sLen > 1) {
+            for (var i = 0; i < sLen - 1; i++) {
+                console.log(bbScreen.eq(i).parent().attr('id'), 'remove...')
+                bbScreen.eq(i).parent().remove();
+            }
+        }
+
+        bb.screens = bb.screens.slice(-1);
     }
 };
 
@@ -159,7 +171,7 @@ var APIs = {
     "long_comments_list_m": "http://news-at.zhihu.com/api/4/story/#{para}/long-comments/before/#{id}", // #{id} 最后一天评论信息 id
     "short_comments_list": "http://news-at.zhihu.com/api/4/story/#{para}/short-comments",
     "short_comments_list_m": "http://news-at.zhihu.com/api/4/story/#{para}/short-comments/before/#{id}"
-}
+};
 
 var ZhihuDailyData = {
     AJAX_GET_TIME_OUT: 5000, // ajax 请求过期时间
@@ -249,12 +261,10 @@ var ZhihuDailyData = {
             dataType: 'json',
             timeout: this.AJAX_GET_TIME_OUT,
             success: function(data) {
-                // console.log(url, 'success');
                 rs = data;
             },
             error: function(xhr, type) {
                 console.log(url, xhr, type, 'error');
-                // 如果失败则移除 loading
                 ZhihuDaily.loading.removeLoading();
             }
         });
@@ -266,13 +276,12 @@ var ZhihuDailyData = {
     getAPIURL: function(api, para) {
         return api.replace('#{para}', para);
     }
-}
+};
 
 var ZhihuDaily = {
     isLongComments: false, // 当前浏览的短评类型
     isReading: false, // 是否正在读取数据
     DATE_SUFFIX: " 06:59:58", // api 日期中固定时间
-    IS_SHOW_LOADING: true, // 是否显示 loading 提示
     LOADING_RES_HEIGHT: 50, // loading 距离底部位置多少时开始加载, 单位 px
     /**
      * 初始化界面
@@ -319,7 +328,7 @@ var ZhihuDaily = {
 
             ZhihuDaily.appendMore.appendNews2Stories(newsObj.stories);
             // 用于判断滚动位置
-            $('.stories').parent().parent().addClass('stories_box');
+            BBUtil.addStoriesBoxClass();
             // 判断最新消息时候可以触发滚动事件, 如果不可以多加载一天消息
             window.setTimeout(function() {
                 if(BBUtil.isStoriesKeepLoading()) {
@@ -332,6 +341,7 @@ var ZhihuDaily = {
         initHotsPage: function() {
             ZhihuDaily.loading.showLoading();
             ZhihuDaily.appendMore.appendNews2Stories(ZhihuDailyData.getHotNewsObj().recent, '今日热门', 'hots');
+            BBUtil.addStoriesBoxClass();
             ZhihuDaily.loading.removeLoading();
         },
         initSectionsPage: function() {
@@ -373,7 +383,7 @@ var ZhihuDaily = {
 
             ZhihuDaily.appendMore.appendNews2Stories(rs, rs.name, type);
             // 用于判断滚动位置
-            stories.parent().parent().addClass('stories_box');
+            BBUtil.addStoriesBoxClass();
             // 判断最新消息时候可以触发滚动事件, 如果不可以多加载一天消息
             window.setTimeout(function() {
                 if(BBUtil.isStoriesKeepLoading()) {
@@ -770,22 +780,15 @@ var ZhihuDaily = {
      * 2. removeLoading 关闭
      */
     loading: {
+        IS_SHOW_LOADING: true,
         showLoading: function() {
-            if(ZhihuDaily.IS_SHOW_LOADING) {
-                $('body').append($('<div class="loading">loading...</div>'));
-                $('.loading').fadeIn();
-
-                $('.loading').onclick = function(e) {
-                    this.removeLoading();
-                };
+            if(this.IS_SHOW_LOADING) {
+                // TODO
             }
         },
         removeLoading: function() {
-            if(ZhihuDaily.IS_SHOW_LOADING) {
-                var loading = $('.loading');
-                loading.fadeOut(function() {
-                    loading.remove();
-                });
+            if(this.IS_SHOW_LOADING) {
+                // TODO
             }
         }
     },
@@ -905,73 +908,56 @@ var ZhihuDaily = {
                 return;
             }
 
-            stories.parent().parent().addClass('stories_box');
+            BBUtil.addStoriesBoxClass();
             ZhihuDaily.storieListener.onStoriesBoxScroll();
         }
     }
-}
+};
 
 var ActionBarMgr = {
-    runing: false,
-    ACTION_BAR_CLICK_ITV: 200, // action bar 点击触发时间间隔
     aTrigger: function(e) {
-        var id = typeof e === 'string' ? e : $(e).attr('id');
-        if(!this.runing) {
-            switch (id) {
-                case 'action_bar_sections':
-                    ShowScreen.sections();
-                    break;
-                case 'action_bar_themes':
-                    ShowScreen.themes();
-                    break;
-                case 'action_bar_home':
-                    ShowScreen.latest();
-                    break;
-                case 'action_bar_hots':
-                    ShowScreen.hots();
-                    break;
-                case 'action_bar_date':
-                    ZhihuDaily.changeDate.initPanel();
-                    break;
-                default:
-                    break;
-            }
-            this.rundingEnd();
+        switch (typeof e === 'string' ? e : $(e).attr('id')) {
+            case 'action_bar_sections':
+                ShowScreen.sections();
+                break;
+            case 'action_bar_themes':
+                ShowScreen.themes();
+                break;
+            case 'action_bar_home':
+                ShowScreen.latest();
+                break;
+            case 'action_bar_hots':
+                ShowScreen.hots();
+                break;
+            case 'action_bar_date':
+                ZhihuDaily.changeDate.initPanel();
+                break;
+            default:
+                break;
         }
-    },
-    rundingEnd: function() {
-        window.setTimeout(function() {
-            this.runing = false;
-        }.bind(this), this.ACTION_BAR_CLICK_ITV);
     }
-}
+};
 
 var ShowScreen = {
     sections: function() {
-        ActionBarMgr.runing = true;
         bb.pushScreen('sections_themes.html', 'sections');
     },
     themes: function() {
-        ActionBarMgr.runing = true;
         bb.pushScreen('sections_themes.html', 'themes');
     },
     latest: function() {
-        ActionBarMgr.runing = true;
         bb.pushScreen('app.html', 'latest');
     },
     hots: function() {
-        ActionBarMgr.runing = true;
         bb.pushScreen('app.html', 'hots');
     },
     sections_themes_list: function(params) {
-        ActionBarMgr.runing = true;
         bb.pushScreen('app.html', 'sections_themes_list', params);
     },
     changeDate: function(params) {
-        ActionBarMgr.runing = true;
         bb.pushScreen('app.html', 'change_date', params);
     }
-}
+};
 
 var BBUtil = {
     showConnectionDialog: function() {
@@ -1001,8 +987,14 @@ var BBUtil = {
     },
     isStoriesKeepLoading: function() {
         return $('.stories').height() + ZhihuDaily.LOADING_RES_HEIGHT <= $('.stories_box').height();
+    },
+    setScreenFlag: function(val) {
+        $(bb.screen.currentScreen).attr('data-screen-flag', val);
+    },
+    addStoriesBoxClass: function() {
+        $('.stories').parent().parent().addClass('stories_box');
     }
-}
+};
 
 var ImgSlider = {
     ITV_NAME: "zhihudailyITV",

@@ -209,6 +209,7 @@ body {
     flex-wrap: wrap;
     flex-direction: row;
     padding-left: 1%;
+    padding-bottom: 1%;
 }
 
 .sections_themes_list li {
@@ -314,7 +315,7 @@ body {
 /*news start */
 .mask .headline-background .heading-content,
 .mask .large .question-title {
-    font-size: 45px !important;
+    font-size: 50px !important;
 }
 
 .mask .meta,
@@ -334,22 +335,30 @@ body {
 .mask .answer h3, 
 .mask .answer h4, 
 .mask .answer h5 {
-    font-size: 40px !important;
+    font-size: 45px !important;
 }
 
 .mask .footer, 
 .mask .comment-meta .vote {
-    font-size: 35px !important;
+    font-size: 40px !important;
 }
 
 .mask .headline .heading-content {
-    font-size: 30px !important;
+    font-size: 35px !important;
 }
 
 .mask .view-more a {
     height: 65px !important;
     line-height: 65px !important;
 }
+
+.mask .meta .avatar, 
+.mask .comment-meta .avatar {
+    width: 60px;
+    height: 60px;
+    vertical-align: middle;
+}
+
 
 div[data-bb-type="screen"] img {
     vertical-align: baseline;
@@ -591,10 +600,11 @@ div[data-bb-type="screen"] img {
 /*选择日期 start*/
 #change_date_ipt {
     position: absolute;
-    bottom: 120px;
+    bottom: 160px;
     font-size: 40px;
     margin: 20px 0 0 20px;
     width: 94.5%;
+    height: 120px;
 }
 
 #change_date_btn {
@@ -603,6 +613,6 @@ div[data-bb-type="screen"] img {
     font-size: 40px;
     margin: 20px;
     width: 97%;
-    height: 83px;
+    height: 120px;
 }
 /*选择日期 end*/
