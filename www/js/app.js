@@ -843,6 +843,52 @@ var ZhihuDaily = {
             var btn = $('<input type="button" name="change_date_btn" id="change_date_btn" value="确定">');
             
             contentBox.append(ipt).append(btn);
+
+
+            // var yearSelector = $('<select name="year" id="year"></select>');
+            // for (var i = 2000; i <= 2100; i++) {
+            //     yearSelector.append($('<option value="' + i + '">' + i + '</option>'));
+            // }
+
+            // var monthSelector = $('<select name="month" id="month"></select>');
+            // for (var i = 1; i <= 12; i++) {
+            //     monthSelector.append($('<option value="' + i + '">' + i + '</option>'));
+            // }
+
+            // var daySelector = $('<select name="day" id="day"></select>');
+            // for (var i = 1; i <= 31; i++) {
+            //     daySelector.append($('<option value="' + i + '">' + i + '</option>'));
+            // }
+            // contentBox.append(yearSelector).append(monthSelector).append(daySelector);
+            
+            // contentBox.append(['    <div data-bb-type="round-panel">',
+            //     '       <div data-bb-type="panel-header">Options</div>',
+            //     '       <div data-bb-type="label-control-container">',
+            //     '           <div data-bb-type="row">',
+            //     '               <div data-bb-type="label">Detail Level</div>',
+            //     '               <select id="detail">',
+            //     '                   <option value="blackberry.pim.calendar.CalendarFindOptions.DETAIL_FULL">Full</option>',
+            //     '                   <option value="blackberry.pim.calendar.CalendarFindOptions.DETAIL_MONTHLY">Monthly</option>',
+            //     '                   <option value="blackberry.pim.calendar.CalendarFindOptions.DETAIL_WEEKLY">Weekly</option>',
+            //     '                   <option value="blackberry.pim.calendar.CalendarFindOptions.DETAIL_AGENDA">Agenda</option>',
+            //     '               </select>',
+            //     '           </div>',
+            //     '           <div data-bb-type="row">',
+            //     '               <div data-bb-type="label">Sort Order</div>',
+            //     '               <select id=\'sort\'>',
+            //     '                   <option value="false">Ascending</option>',
+            //     '                   <option value="true">Descending</option>',
+            //     '               </select>',
+            //     '           </div>',
+            //     '           <div data-bb-type="row">',
+            //     '               <div data-bb-type="label">Limit Results</div>',
+            //     '               <input id="limit" type="number" />',
+            //     '           </div>',
+            //     '       </div>',
+            //     '   </div>'].join(""));
+
+
+
             this.initEvent();
         },
         initEvent: function() {
