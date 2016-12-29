@@ -628,7 +628,7 @@ var ZhihuDaily = {
                 }));
             }else {
                 cb.prepend($('<div></div>').css({
-                    height: '200px',
+                    height: '10rem',
                     position: 'relative'
                 })
                 .append($(imgTpl).find('.comments_info').css({
