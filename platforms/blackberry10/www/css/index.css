@@ -330,15 +330,15 @@ body {
 .mask .headline .meta a:hover,
 .mask .large .meta,
 .mask .large .content,
-.mask .answer h1, 
-.mask .answer h2, 
-.mask .answer h3, 
-.mask .answer h4, 
+.mask .answer h1,
+.mask .answer h2,
+.mask .answer h3,
+.mask .answer h4,
 .mask .answer h5 {
     font-size: 2.25rem !important;
 }
 
-.mask .footer, 
+.mask .footer,
 .mask .comment-meta .vote {
     font-size: 2rem !important;
 }
@@ -352,7 +352,7 @@ body {
     line-height: 3.25rem !important;
 }
 
-.mask .meta .avatar, 
+.mask .meta .avatar,
 .mask .comment-meta .avatar {
     width: 3rem;
     height: 3rem;
@@ -598,22 +598,15 @@ div[data-bb-type="screen"] img {
 /*评论查看end*/
 
 /*选择日期 start*/
-#change_date_ipt {
-    position: absolute;
-    bottom: 8rem;
-    font-size: 2rem;
-    margin: 1rem 0 0 1rem;
-    width: 97%;
-    height: 6rem;
-    text-align: center;
-}
-
 #change_date_btn {
     position: absolute;
     bottom: 0;
     font-size: 2rem;
     margin: 1rem;
     width: 97%;
-    height: 6rem;
+    height: 5rem;
+    color: #fff;
+    background: #00BFFF;
+    border: 0;
 }
 /*选择日期 end*/

@@ -82,7 +82,7 @@ var App = {
         });
     },
     clearOldScreen: function() {
-        var bbScreen = $('.bb-screen'), 
+        var bbScreen = $('.bb-screen'),
             sLen = bbScreen.length;
 
         if(sLen > 1) {
@@ -149,6 +149,9 @@ var DateTools = {
         s = s < 10 ? '0' + s : s;
 
         return d + ' ' + h + ':' + m + ':' + s;
+    },
+    getMaxDay: function(y, m) {
+        return new Date(y, m, 0).getDate();
     }
 };
 
@@ -672,8 +675,8 @@ var ZhihuDaily = {
                 ZhihuDaily.loading.removeLoading();
                 // 如果加载完成则加上标志
                 commentsInfoBoxUl.append($('<li>' +
-                        '<div class="comments_info_avatar"></div>' +
-                        '<div class="comments_info_desc"><div class="comments_info_author">已经全部加载完成!</div></div>' +
+                        '   <div class="comments_info_avatar"></div>' +
+                        '   <div class="comments_info_desc"><div class="comments_info_author">已经全部加载完成!</div></div>' +
                         '</li>')).attr('is_load_end', 1);
                 return;
             }
@@ -829,74 +832,69 @@ var ZhihuDaily = {
      */
     changeDate: {
         CLASS_NAME: "change_date_mask",
+        DOT_CLASS_NAME: ".change_date_mask",
         initPanel: function() {
             // 添加 Mask 提供显示选择日期
             ZhihuDaily.mask.addMask(this.CLASS_NAME);
 
-            var panel = $('.' + this.CLASS_NAME),
+            this.initChooser();
+            this.initEvent();
+        },
+        initChooser: function() {
+            var panel = $(this.DOT_CLASS_NAME),
                 titleBox = panel.find('.title'),
                 contentBox = panel.find('.content_box');
 
+            var date = new Date(),
+                y = date.getFullYear(),
+                m = date.getMonth() + 1,
+                d = date.getDate(),
+                maxDay = DateTools.getMaxDay(y, m);
+
+            var yearSelector = $('<select data-bb-style="stretch" name="year" id="year"></select>'),
+                monthSelector = $('<select data-bb-style="stretch" name="month" id="month"></select>'),
+                daySelector = $('<select data-bb-style="stretch" name="day" id="day"></select>'),
+                btn = $('<input type="button" name="change_date_btn" id="change_date_btn" value="确定">');
+
+            for (var i = 2013; i <= y; i++) {
+                if(i === y) {
+                    yearSelector.append($('<option data-bb-accent-text="now" selected="true" value="' + i + '">' + i + '</option>'));
+                }else {
+                    yearSelector.append($('<option value="' + i + '">' + i + '</option>'));
+                }
+            }
+
+            for (var i = 1; i <= 12; i++) {
+                if(i === m) {
+                    monthSelector.append($('<option data-bb-accent-text="now" selected="true" value="' + i + '">' + i + '</option>'));
+                }else {
+                    monthSelector.append($('<option value="' + i + '">' + i + '</option>'));
+                }
+            }
+
+            for (var i = 1; i <= maxDay; i++) {
+                if(i === d) {
+                    daySelector.append($('<option data-bb-accent-text="now" selected="true" value="' + i + '">' + i + '</option>'));
+                }else {
+                    daySelector.append($('<option value="' + i + '">' + i + '</option>'));
+                }
+            }
+
             titleBox.text('请选择日期');
-            // 添加 input 提供选择
-            var ipt = $('<input type="text" name="change_date_ipt" id="change_date_ipt" />');
-            var btn = $('<input type="button" name="change_date_btn" id="change_date_btn" value="确定">');
-            
-            contentBox.append(ipt).append(btn);
 
+            contentBox.append(bb.dropdown.style(yearSelector.get(0)))
+                .append(bb.dropdown.style(monthSelector.get(0)))
+                .append(bb.dropdown.style(daySelector.get(0)))
+                .append(btn);
 
-
-
-            // var yearSelector = $('<select name="year" id="year"></select>');
-            // for (var i = 2000; i <= 2100; i++) {
-            //     yearSelector.append($('<option value="' + i + '">' + i + '</option>'));
-            // }
-
-            // var monthSelector = $('<select name="month" id="month"></select>');
-            // for (var i = 1; i <= 12; i++) {
-            //     monthSelector.append($('<option value="' + i + '">' + i + '</option>'));
-            // }
-
-            // var daySelector = $('<select name="day" id="day"></select>');
-            // for (var i = 1; i <= 31; i++) {
-            //     daySelector.append($('<option value="' + i + '">' + i + '</option>'));
-            // }
-            // contentBox.append(yearSelector).append(monthSelector).append(daySelector);
-            
-            contentBox.append(['    <div data-bb-type="round-panel">',
-                '       <div data-bb-type="panel-header">Options</div>',
-                '       <div data-bb-type="label-control-container">',
-                '           <div data-bb-type="row">',
-                '               <div data-bb-type="label">Detail Level</div>',
-                '               <select id="detail">',
-                '                   <option value="blackberry.pim.calendar.CalendarFindOptions.DETAIL_FULL">Full</option>',
-                '                   <option value="blackberry.pim.calendar.CalendarFindOptions.DETAIL_MONTHLY">Monthly</option>',
-                '                   <option value="blackberry.pim.calendar.CalendarFindOptions.DETAIL_WEEKLY">Weekly</option>',
-                '                   <option value="blackberry.pim.calendar.CalendarFindOptions.DETAIL_AGENDA">Agenda</option>',
-                '               </select>',
-                '           </div>',
-                '           <div data-bb-type="row">',
-                '               <div data-bb-type="label">Sort Order</div>',
-                '               <select id=\'sort\'>',
-                '                   <option value="false">Ascending</option>',
-                '                   <option value="true">Descending</option>',
-                '               </select>',
-                '           </div>',
-                '           <div data-bb-type="row">',
-                '               <div data-bb-type="label">Limit Results</div>',
-                '               <input id="limit" type="number" />',
-                '           </div>',
-                '       </div>',
-                '   </div>'].join(""));
-
-
-
-            this.initEvent();
+            // 默认打开日期选择器
+            document.getElementById('day').dropdown.internalShow();
+            // $('#day').parent().get(0).internalShow();
         },
         initEvent: function() {
             var that = this;
             $('#change_date_btn').on('click', function(e) {
-                var selectedDate = $('#change_date_ipt').val();
+                var selectedDate = [$('#year').val(), $('#month').val(), $('#day').val()].join('-');
                 var screenFlag = $('.bb-screen').attr('data-screen-flag');
                 var stories = $('.stories'),
                     type = stories.attr('data-type'),
@@ -917,6 +915,25 @@ var ZhihuDaily = {
                         id: id,
                     });
                 }, 500);
+            });
+
+            $('#year, #month').on('change', function(e) {
+                var maxDay = DateTools.getMaxDay($('#year').val(), $('#month').val());
+                var crtLen = $('#day option').length;
+                // 计算天数
+                if(maxDay > crtLen) {
+                    var addOptions = [];
+                    for (var i = crtLen + 1; i <= maxDay; i++) {
+                        addOptions.push('<option value="' + i + '">' + i + '</option>');
+                    }
+                    $('#day').append($(addOptions.join('')));
+                }else if(maxDay < crtLen) {
+                    for (var i = maxDay; i < crtLen; i++) {
+                        $('#day option').eq(i).remove();
+                    }
+                }
+
+                document.getElementById('day').refresh();
             });
         },
         validateDate: function(date) {
