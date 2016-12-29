@@ -829,6 +829,7 @@ var ZhihuDaily = {
      */
     changeDate: {
         CLASS_NAME: "change_date_mask",
+        calendar: null,
         initPanel: function() {
             // 添加 Mask 提供显示选择日期
             ZhihuDaily.mask.addMask(this.CLASS_NAME);
@@ -839,9 +840,14 @@ var ZhihuDaily = {
 
             titleBox.text('请选择日期');
             // 添加 input 提供选择
-            var ipt = $('<input type="date" name="change_date_ipt" id="change_date_ipt" autofocus="autofocus" />');
+            var ipt = $('<input type="text" name="change_date_ipt" id="change_date_ipt" class="calendars" format="yy-mm-dd" />');
             var btn = $('<input type="button" name="change_date_btn" id="change_date_btn" value="确定">');
+            
             contentBox.append(ipt).append(btn);
+
+            if(!this.calendar) {
+                this.calendar = new Calendar(); // 初始化日历
+            }
 
             this.initEvent();
         },
