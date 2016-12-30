@@ -346,10 +346,10 @@ var ZhihuDaily = {
 
             ZhihuDaily.appendMore.appendNews2Stories(newsObj.stories);
             // 用于判断滚动位置
-            BBUtil.addStoriesBoxClass();
+            ZhihuDaily.storiesTools.addStoriesBoxClass();
             // 判断最新消息时候可以触发滚动事件, 如果不可以多加载一天消息
             window.setTimeout(function() {
-                if(BBUtil.isStoriesKeepLoading()) {
+                if(ZhihuDaily.storiesTools.isStoriesKeepLoading()) {
                     ZhihuDaily.appendMore.appendPreDayNews($(document.querySelector('.stories_list:last-child')).attr('data-date'));
                 }
             }, 200);
@@ -359,7 +359,7 @@ var ZhihuDaily = {
         initHotsPage: function() {
             ZhihuDaily.loading.showLoading();
             ZhihuDaily.appendMore.appendNews2Stories(ZhihuDailyData.getHotNewsObj().recent, '今日热门', 'hots');
-            BBUtil.addStoriesBoxClass();
+            ZhihuDaily.storiesTools.addStoriesBoxClass();
             ZhihuDaily.loading.removeLoading();
         },
         initSectionsPage: function() {
@@ -401,10 +401,10 @@ var ZhihuDaily = {
 
             ZhihuDaily.appendMore.appendNews2Stories(rs, rs.name, type);
             // 用于判断滚动位置
-            BBUtil.addStoriesBoxClass();
+            ZhihuDaily.storiesTools.addStoriesBoxClass();
             // 判断最新消息时候可以触发滚动事件, 如果不可以多加载一天消息
             window.setTimeout(function() {
-                if(BBUtil.isStoriesKeepLoading()) {
+                if(ZhihuDaily.storiesTools.isStoriesKeepLoading()) {
                     ZhihuDaily.appendMore.appendNextSectionsThemes($(document.querySelector('.stories_list:last-child')).attr('data-date'), id, type);
                 }
             }, 200);
@@ -655,8 +655,8 @@ var ZhihuDaily = {
             }
 
             $('.mask .title').text(data.title);
+            $('.content_box a').attr('target', '_blank');
 
-            BBUtil.link2Blank();
             ZhihuDaily.loading.removeLoading();
         },
         viewComments: function(id, lastId, isLongComments) {
@@ -1004,11 +1004,23 @@ var ZhihuDaily = {
                 return;
             }
 
-            BBUtil.addStoriesBoxClass();
+            ZhihuDaily.storiesTools.addStoriesBoxClass();
             ZhihuDaily.storieListener.onStoriesBoxScroll();
         },
         connotViewThisType: function() {
             BBUtil.alert('此类型不支持查看历史消息!', '提示');
+        }
+    },
+    /**
+     * 1. isStoriesKeepLoading 时候加载
+     * 2. addStoriesBoxClass 添加 stories_box class 至 box
+     */
+    storiesTools: {
+        isStoriesKeepLoading: function() {
+            return $('.stories').height() + ZhihuDaily.LOADING_RES_HEIGHT <= $('.stories_box').height();
+        },
+        addStoriesBoxClass: function() {
+            $('.stories').parent().parent().addClass('stories_box');
         }
     }
 };
@@ -1098,6 +1110,9 @@ var ActionBarMgr = {
             case 'action_bar_date':
                 ZhihuDaily.changeDate.initPanel();
                 break;
+            case 'action_bar_setting':
+                BBUtil.settings.init();
+                break;
             default:
                 break;
         }
@@ -1143,22 +1158,35 @@ var BBUtil = {
         );
     },
     initImgZoom: function(url) {
-        $(bb.screen.currentScreen).append($('<div id="view_img_box"><img src="' + url + '"></div>')
-            .on('click', function() {
-                $(this).remove();
+        $(bb.screen.currentScreen).append($('<div id="view_img_box"><img src="' + url + '"></div>').on('click', function() {
+            $(this).remove();
         }));
-    },
-    link2Blank: function() {
-        $('.content_box a').attr('target', '_blank');
-    },
-    isStoriesKeepLoading: function() {
-        return $('.stories').height() + ZhihuDaily.LOADING_RES_HEIGHT <= $('.stories_box').height();
     },
     setScreenFlag: function(val) {
         $(bb.screen.currentScreen).attr('data-screen-flag', val);
     },
-    addStoriesBoxClass: function() {
-        $('.stories').parent().parent().addClass('stories_box');
+    settings: {
+        SETTINGS_CLASS: "settings_mask",
+        DOT_SETTINGS_CLASS: ".settings_mask",
+        init: function() {
+            this.initPanel();
+            this.initContent();
+        },
+        initPanel: function() {
+            ZhihuDaily.mask.addMask(this.SETTINGS_CLASS);
+        },
+        initContent: function() {
+            var mask = $(this.DOT_SETTINGS_CLASS),
+                title = mask.find('.title'),
+                contentBox = mask.find('.content_box');
+
+            var xhr = new XMLHttpRequest();
+            xhr.open("GET", "../tpl/settings.html", false);
+            xhr.send();
+
+            title.text('设置');
+            contentBox.html(xhr.responseText);
+        }
     }
 };
 

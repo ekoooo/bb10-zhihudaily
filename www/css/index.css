@@ -611,6 +611,31 @@ div[data-bb-type="screen"] img {
 }
 /*选择日期 end*/
 
+/*settings start*/
+.settings_box {
+    padding: 0.5rem;
+}
+
+.settings_box_item {
+    border: 1px solid #eee;
+    margin: 0.5rem 0.5rem 1rem 0.5rem;
+    padding: 1rem;
+    box-sizing: border-box;
+    border-radius: 0.2rem;
+}
+
+.settings_box_item h2 {
+    font-size: 2.5rem;
+    margin-bottom: 1.5rem;
+    text-align: center;
+}
+
+.s_about a, .s_hotkey span.bold {
+    font-weight: bold;
+}
+/*settings end*/
+
+
 
 @media only screen and (max-width: 1024px) {
     .stories_list li {

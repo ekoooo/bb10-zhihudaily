@@ -1,10 +1,10 @@
 <?xml version='1.0' encoding='utf-8'?>
-<widget id="tech.lwl.zhihudaily" version="0.0.1" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0" xmlns:rim="http://www.blackberry.com/ns/widgets">
+<widget id="com.zhihudaily.ekoo" version="0.0.1" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0" xmlns:rim="http://www.blackberry.com/ns/widgets">
     <feature name="com.blackberry.ui.dialog" value="com.blackberry.ui.dialog" />
     <feature name="com.blackberry.app" value="com.blackberry.app" />
     <name>知乎日报</name>
     <preference name="ChildBrowser" value="disable" />
-    <icon src="img/logo.png" />
+    <license href="MIT" />
     <rim:splash src="img/splash-1280x768.png" />
     <rim:splash src="img/splash-720x720.png" />
     <content src="index.html" />
@@ -16,6 +16,6 @@
     <access origin="http://alicdn.com" subdomains="true" />
     <access origin="http://youku.com" subdomains="true" />
     <description>bb10 知乎日报，webworks 版本</description>
-    <author email="954408050@qq.com" href="github.com/ekoooo">liuwanlin</author>
-    <license href="MIT" />
+    <author email="954408050@qq.com" href="github.com/ekoooo">ekoo</author>
+    <icon src="img/logo.png" />
 </widget>
