@@ -23,5 +23,15 @@
 - [x] 下拉刷新闪屏, 原因是弹性下拉(`-webkit-overflow-scrolling: touch`)导致, 如果关闭则滑动不流畅. 暂时没有想到好的方法解决 (关闭loading效果减轻闪屏效果, 可能是同时操作 DOM 导致?)
 - [x] 代码结构调整 (部分)
 
+## 快捷键
+- [] 主页(index): i
+- [] 栏目(section): s
+- [] 主题(theme): t
+- [] 热门(hot): h
+- [] 日期选择(date): d
+- [] 关闭页面(close): c
+- [] 查看评论(comments message): m
+- [] 切换评论(switch): w
+
 ## 说明
 纯属个人兴趣开发. 如果有什么建议可发送至我邮箱: 954408050@qq.com
