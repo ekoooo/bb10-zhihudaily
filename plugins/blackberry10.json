@@ -11,6 +11,10 @@
                         {
                             "xml": "<feature name=\"com.blackberry.ui.dialog\" value=\"com.blackberry.ui.dialog\" />",
                             "count": 1
+                        },
+                        {
+                            "xml": "<feature name=\"com.blackberry.app\" value=\"com.blackberry.app\" />",
+                            "count": 1
                         }
                     ]
                 }
@@ -19,6 +23,9 @@
     },
     "installed_plugins": {
         "com.blackberry.ui.dialog": {
+            "PACKAGE_NAME": "tech.lwl.zhihudaily"
+        },
+        "com.blackberry.app": {
             "PACKAGE_NAME": "tech.lwl.zhihudaily"
         }
     },

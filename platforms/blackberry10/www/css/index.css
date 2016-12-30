@@ -229,7 +229,7 @@ body {
     height: 15rem;
     padding: 2rem 1rem;
     border-radius: 5px;
-    background-color: #fff;
+    background-color: green;
     background-size: 100% !important;
     background-position: center !important;
     background-repeat: no-repeat !important;
@@ -610,3 +610,29 @@ div[data-bb-type="screen"] img {
     border: 0;
 }
 /*选择日期 end*/
+
+
+@media only screen and (max-width: 1024px) {
+    .stories_list li {
+        width: 100%;
+    }
+
+    .sections_themes_list li {
+        width: 49%;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

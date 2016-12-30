@@ -3,14 +3,12 @@ var App = {
     initApp: function() {
         ShowScreen.latest();
         this.attachEvent();
+        KeyboardHelper.attachEvent();
     },
     attachEvent: function() {
         $(document).on('bb_ondomready', function(e, obj) {
             BBUtil.setScreenFlag(obj.id);
-
             App.clearOldScreen();
-            App.clearActionBar(obj.id);
-
             App.BB_SCREEN_HEIGHT = $('.bb-screen').height();
 
             switch (obj.id) {
@@ -38,6 +36,8 @@ var App = {
                 default:
                     break;
             }
+
+            App.clearActionBar(obj.id);
         });
 
         // 主页按钮点击监听 (dom 中直接添加 onclick 有问题?)
@@ -103,7 +103,7 @@ var App = {
         }
 
         // 只有栏目,主页,历史消息页可以查看历史消息, 否则隐藏日期 actionBar
-        if(id === 'latest' || id === 'sections' || id === 'change_date') {
+        if(id === 'latest' || id === 'change_date' || $('.stories').attr('data-type') === 'sections') {
             dateActionBar.show();
         }else {
             dateActionBar.hide();
@@ -1009,6 +1009,73 @@ var ZhihuDaily = {
         },
         connotViewThisType: function() {
             BBUtil.alert('此类型不支持查看历史消息!', '提示');
+        }
+    }
+};
+
+var KeyboardHelper = {
+    KEY_CHAR: 'isthdcmw',
+    attachEvent: function() {
+        var that = this;
+
+        // TypeError: undefined is not an object (evaluating 'bb.actionOverflow.create')
+        window.setTimeout(function() {
+            blackberry.event.addEventListener("unhandledkeyinput", function (e) {
+                if(e.keyDown) {
+                    var keycode = String.fromCharCode(e.keycode);
+                    if(that.KEY_CHAR.indexOf(keycode) !== -1) {
+                        that[keycode]();
+                    }
+                }
+            });
+        }, 200);
+    },
+    i: function() {
+        // 主页
+        ActionBarMgr.aTrigger('action_bar_home');
+    },
+    s: function() {
+        // 栏目
+        ActionBarMgr.aTrigger('action_bar_sections');
+    },
+    t: function() {
+        // 主题
+        ActionBarMgr.aTrigger('action_bar_themes');
+    },
+    h: function() {
+        // 热门
+        ActionBarMgr.aTrigger('action_bar_hots');
+    },
+    d: function() {
+        // 日期选择
+        if(document.getElementById('action_bar_date') 
+                && document.getElementById('action_bar_date').style.display !== 'none' 
+                && !document.querySelector('.mask')) {
+            ActionBarMgr.aTrigger('action_bar_date');
+        }
+    },
+    c: function() {
+        // 关闭页面
+        var mask = document.querySelector('.mask:last-child');
+        if(mask) {
+            mask = $(mask);
+            mask.fadeOut(function() {
+                mask.remove();
+            });
+        }
+    },
+    m: function() {
+        // 查看评论
+        var commentsInfo = document.querySelector('.comments_info');
+        if(commentsInfo) {
+            $(commentsInfo).trigger('click');
+        }
+    },
+    w: function() {
+        // 切换评论
+        var btn = document.querySelector('.show_comments_btn:not(.active)');
+        if(btn) {
+            $(btn).trigger('click');
         }
     }
 };
