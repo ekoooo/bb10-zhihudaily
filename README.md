@@ -24,14 +24,14 @@
 - [x] 代码结构调整 (部分)
 
 ## 快捷键
-- [] 主页(index): i
-- [] 栏目(section): s
-- [] 主题(theme): t
-- [] 热门(hot): h
-- [] 日期选择(date): d
-- [] 关闭页面(close): c
-- [] 查看评论(comments message): m
-- [] 切换评论(switch): w
+- [ ] 主页(index): i
+- [ ] 栏目(section): s
+- [ ] 主题(theme): t
+- [ ] 热门(hot): h
+- [ ] 日期选择(date): d
+- [ ] 关闭页面(close): c
+- [ ] 查看评论(comments message): m
+- [ ] 切换评论(switch): w
 
 ## 说明
 纯属个人兴趣开发. 如果有什么建议可发送至我邮箱: 954408050@qq.com
