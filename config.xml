@@ -1,6 +1,6 @@
 <widget id="com.zhihudaily.ekoo" 
-  xmlns:cdv="http://cordova.apache.org/ns/1.0" version="0.0.1" 
-  xmlns="http://www.w3.org/ns/widgets">
+  xmlns="http://www.w3.org/ns/widgets" 
+  xmlns:cdv="http://cordova.apache.org/ns/1.0" version="0.0.1">
   <name>知乎日报</name>
   <preference name="ChildBrowser" value="disable"/>
   <license href="MIT"/>
