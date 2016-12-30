@@ -9,6 +9,8 @@ var App = {
             BBUtil.setScreenFlag(obj.id);
 
             App.clearOldScreen();
+            App.clearActionBar(obj.id);
+
             App.BB_SCREEN_HEIGHT = $('.bb-screen').height();
 
             switch (obj.id) {
@@ -93,6 +95,19 @@ var App = {
         }
 
         bb.screens = bb.screens.slice(-1);
+    },
+    clearActionBar: function(id) {
+        var dateActionBar = document.getElementById('action_bar_date');
+        if(!dateActionBar) {
+            return;
+        }
+
+        // 只有栏目和主页可以查看历史消息, 否则隐藏日期 actionBar
+        if(id === 'latest' || id === 'sections' || id === 'change_date') {
+            dateActionBar.show();
+        }else {
+            dateActionBar.hide();
+        }
     }
 };
 
@@ -837,15 +852,15 @@ var ZhihuDaily = {
             // 添加 Mask 提供显示选择日期
             ZhihuDaily.mask.addMask(this.CLASS_NAME);
 
-            this.initChooser();
+            this.initChooser($('.stories').attr('data-current_selected_date'));
             this.initEvent();
         },
-        initChooser: function() {
+        initChooser: function(iDate) {
             var panel = $(this.DOT_CLASS_NAME),
                 titleBox = panel.find('.title'),
                 contentBox = panel.find('.content_box');
 
-            var date = new Date(),
+            var date = typeof iDate === 'string' ? new Date(iDate) : new Date(),
                 y = date.getFullYear(),
                 m = date.getMonth() + 1,
                 d = date.getDate(),
@@ -856,40 +871,53 @@ var ZhihuDaily = {
                 daySelector = $('<select data-bb-style="stretch" name="day" id="day"></select>'),
                 btn = $('<input type="button" name="change_date_btn" id="change_date_btn" value="确定">');
 
+            var yearSelectorD = yearSelector.get(0),
+                monthSelectorD = monthSelector.get(0),
+                daySelectorD = daySelector.get(0),
+                temp = 0;
+
             for (var i = 2013; i <= y; i++) {
                 if(i === y) {
-                    yearSelector.append($('<option data-bb-accent-text="now" selected="true" value="' + i + '">' + i + '</option>'));
+                    yearSelector.append($('<option data-bb-accent-text="current" value="' + i + '">' + i + '</option>'));
                 }else {
                     yearSelector.append($('<option value="' + i + '">' + i + '</option>'));
                 }
             }
 
             for (var i = 1; i <= 12; i++) {
+                temp = i < 10 ? '0' + i : i;
                 if(i === m) {
-                    monthSelector.append($('<option data-bb-accent-text="now" selected="true" value="' + i + '">' + i + '</option>'));
+                    monthSelector.append($('<option data-bb-accent-text="current" value="' + temp + '">' + temp + '</option>'));
                 }else {
-                    monthSelector.append($('<option value="' + i + '">' + i + '</option>'));
+                    monthSelector.append($('<option value="' + temp + '">' + temp + '</option>'));
                 }
             }
 
             for (var i = 1; i <= maxDay; i++) {
+                temp = i < 10 ? '0' + i : i;
                 if(i === d) {
-                    daySelector.append($('<option data-bb-accent-text="now" selected="true" value="' + i + '">' + i + '</option>'));
+                    daySelector.append($('<option data-bb-accent-text="current" value="' + temp + '">' + temp + '</option>'));
                 }else {
-                    daySelector.append($('<option value="' + i + '">' + i + '</option>'));
+                    daySelector.append($('<option value="' + temp + '">' + temp + '</option>'));
                 }
             }
 
             titleBox.text('请选择日期');
 
-            contentBox.append(bb.dropdown.style(yearSelector.get(0)))
-                .append(bb.dropdown.style(monthSelector.get(0)))
-                .append(bb.dropdown.style(daySelector.get(0)))
+            contentBox.append(bb.dropdown.style(yearSelectorD))
+                .append(bb.dropdown.style(monthSelectorD))
+                .append(bb.dropdown.style(daySelectorD))
                 .append(btn);
 
+            yearSelectorD.setSelectedItem(y - 2013);
+            monthSelectorD.setSelectedItem(m - 1);
+            daySelectorD.setSelectedItem(d - 1);
+
             // 默认打开日期选择器
-            document.getElementById('day').dropdown.internalShow();
-            // $('#day').parent().get(0).internalShow();
+            window.setTimeout(function() {
+                // 内核自定最小时间刷新, 解决默认伸展失效问题
+                document.getElementById('day').dropdown.internalShow()
+            }, 0);
         },
         initEvent: function() {
             var that = this;
@@ -955,6 +983,9 @@ var ZhihuDaily = {
             var type = obj.params.type;
             var id = obj.params.id;
 
+            // 设置当前查询的日期, 用于选择回填
+            stories.attr('data-current_selected_date', date);
+
             // 只有栏目和主页可以查看历史消息
             if('sections_themes_list' === screenFlag) { // 栏目/主题
                 if('sections' === type) { // 栏目
@@ -963,18 +994,21 @@ var ZhihuDaily = {
 
                     ZhihuDaily.appendMore.appendNextSectionsThemes(+new Date(date) / 1000, id, type);
                 }else {
-                    BBUtil.alert('此类型不支持查看历史消息!', '提示');
+                    this.connotViewThisType();
                     return;
                 }
             }else if('latest' === screenFlag) {
                 ZhihuDaily.appendMore.appendPreDayNews(DateTools.getNextDateStr(new Date(date)));
             }else {
-                BBUtil.alert('此类型不支持查看历史消息!', '提示');
+                this.connotViewThisType();
                 return;
             }
 
             BBUtil.addStoriesBoxClass();
             ZhihuDaily.storieListener.onStoriesBoxScroll();
+        },
+        connotViewThisType: function() {
+            BBUtil.alert('此类型不支持查看历史消息!', '提示');
         }
     }
 };
