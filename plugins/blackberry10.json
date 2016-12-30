@@ -23,10 +23,10 @@
     },
     "installed_plugins": {
         "com.blackberry.ui.dialog": {
-            "PACKAGE_NAME": "tech.lwl.zhihudaily"
+            "PACKAGE_NAME": "com.zhihudaily.ekoo"
         },
         "com.blackberry.app": {
-            "PACKAGE_NAME": "tech.lwl.zhihudaily"
+            "PACKAGE_NAME": "com.zhihudaily.ekoo"
         }
     },
     "dependent_plugins": {}
