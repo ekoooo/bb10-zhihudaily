@@ -518,9 +518,11 @@ var ZhihuDaily = {
                     tempLi = $(liTpl);
                     tempLi.find('a').attr('data-id', item.id);
                     tempLi.find('.stories_desc').text(item.title);
-                    tempLi.find('.stories_ico').css({
-                        background: 'url(' + item.images[0] + ')'
-                    });
+                    if(item.images && item.images[0]) {
+                        tempLi.find('.stories_ico').css({
+                            background: 'url(' + item.images[0] + ')'
+                        });
+                    }
                     storiesListDom.append(tempLi);
                 }
             }
@@ -1060,8 +1062,8 @@ var KeyboardHelper = {
     },
     d: function() {
         // 日期选择
-        if(document.getElementById('action_bar_date') 
-                && document.getElementById('action_bar_date').style.display !== 'none' 
+        if(document.getElementById('action_bar_date')
+                && document.getElementById('action_bar_date').style.display !== 'none'
                 && !document.querySelector('.mask')) {
             ActionBarMgr.aTrigger('action_bar_date');
         }
