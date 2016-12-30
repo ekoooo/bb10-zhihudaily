@@ -915,9 +915,9 @@ var ZhihuDaily = {
 
             // 默认打开日期选择器
             window.setTimeout(function() {
-                // 内核自定最小时间刷新, 解决默认伸展失效问题
+                // 解决默认伸展失效问题
                 document.getElementById('day').dropdown.internalShow()
-            }, 0);
+            }, 500);
         },
         initEvent: function() {
             var that = this;
