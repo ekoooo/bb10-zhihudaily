@@ -32,6 +32,7 @@
 - 关闭页面(close): `c`
 - 查看评论(comments message): `m`
 - 切换评论(switch): `w`
+- 夜间模式切换(night mode): `n`
 
 ## 说明
 纯属个人兴趣开发. 如果有什么建议可发送至我邮箱: 954408050@qq.com

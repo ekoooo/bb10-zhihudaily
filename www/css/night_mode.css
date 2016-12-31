@@ -1,0 +1,72 @@
+div[data-bb-type="action-bar"] {
+    background-color: #000;
+}
+.bb-screen {
+    background-color: #000;
+}
+.stories_list li a {
+    background-color: #000;
+    box-shadow: 3px 5px 10px 0 rgba(7, 4, 75, 0.8);
+}
+.stories_date,
+.stories_editors ul li p,
+.stories_list li a,
+.mask,
+.mask .head,
+.open_url div {
+    color: #00FFFF;
+}
+.stories_ico {
+    border-radius: 0.5rem;
+}
+.mask {
+    background-color: #000;
+}
+.mask .head {
+    background: -webkit-linear-gradient(top, #333 0%, #000 100%);
+    border-bottom: #333;
+}
+.content-wrap {
+    background: #000 !important;
+}
+.comments_info div {
+    color: rgb(131, 131, 131);
+}
+.headline {
+    border-bottom: none !important;
+}
+.question .view-more a {
+    background-color: #111;
+}
+
+.show_comments_btn.active {
+    background-color: #111;
+}
+.comments_info_box li {
+    border-bottom: #222;
+}
+.comments_info_content {
+    color: #eee;
+}
+.settings_box_item {
+    border: 1px solid #333;
+}
+.settings_box_item h2,
+.comments_info,
+.stories_date {
+    background: -webkit-linear-gradient(top, #333 0%, #000 100%);
+    -webkit-animation: none;
+}
+.close_btn {
+    border: 1px solid #222;
+    background: -webkit-linear-gradient(bottom, rgb(55, 60, 61) 0%, rgb(56, 139, 136) 100%);
+}
+.open_url div {
+    background: -webkit-linear-gradient(top, #333 0%, #000 100%);
+}
+.question + .question {
+    border-top: 5px solid #111 !important;
+}
+.answer + .answer {
+    border-top: 2px solid #111 !important;
+}

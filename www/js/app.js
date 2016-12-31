@@ -1,6 +1,7 @@
 var App = {
     BB_SCREEN_HEIGHT: 0,
     initApp: function() {
+        BBUtil.settings.apply();
         ShowScreen.latest();
         this.attachEvent();
         KeyboardHelper.attachEvent();
@@ -89,7 +90,6 @@ var App = {
 
         if(sLen > 1) {
             for (var i = 0; i < sLen - 1; i++) {
-                console.log(bbScreen.eq(i).parent().attr('id'), 'remove...')
                 bbScreen.eq(i).parent().remove();
             }
         }
@@ -283,6 +283,7 @@ var ZhihuDailyData = {
             },
             error: function(xhr, type) {
                 console.log(url, xhr, type, 'error');
+                BBUtil.alert('网络不行啊兄弟~');
                 ZhihuDaily.loading.removeLoading();
             }
         });
@@ -1028,7 +1029,7 @@ var ZhihuDaily = {
 };
 
 var KeyboardHelper = {
-    KEY_CHAR: 'isthdcmw',
+    KEY_CHAR: 'isthdcmwn',
     attachEvent: function() {
         var that = this;
 
@@ -1091,6 +1092,10 @@ var KeyboardHelper = {
         if(btn) {
             $(btn).trigger('click');
         }
+    },
+    n: function() {
+        // 切换夜间模式
+        BBUtil.settings.toggleNightMode();
     }
 };
 
@@ -1168,16 +1173,34 @@ var BBUtil = {
         $(bb.screen.currentScreen).attr('data-screen-flag', val);
     },
     settings: {
+        isInitDate: false,
         SETTINGS_CLASS: "settings_mask",
         DOT_SETTINGS_CLASS: ".settings_mask",
+        SETTINGS_OBJ_NAME: "SETTINGS",
+        LINK_ID: "night_mode_css",
+        SETTINGS_OBJ: {
+            "NIGHT_MODE": "0"
+        },
+        saveSettings: function() {
+            window.localStorage.setItem(this.SETTINGS_OBJ_NAME, JSON.stringify(this.SETTINGS_OBJ));
+        },
+        getSetting: function(key) {
+            return this.SETTINGS_OBJ[key];
+        },
+        apply: function() {
+            this.initData();
+            // 夜间模式
+            this.initNightMode();
+        },
         init: function() {
-            this.initPanel();
-            this.initContent();
+            this.initPanel(); // 打开弹窗界面
+            // this.initData(); // 初始化设置数据到内存中
+            this.initSettingItems(); // 初始化设置选项
+            this.initHandler(); // 事件监听
         },
         initPanel: function() {
             ZhihuDaily.mask.addMask(this.SETTINGS_CLASS);
-        },
-        initContent: function() {
+
             var mask = $(this.DOT_SETTINGS_CLASS),
                 title = mask.find('.title'),
                 contentBox = mask.find('.content_box');
@@ -1188,6 +1211,64 @@ var BBUtil = {
 
             title.text('设置');
             contentBox.html(xhr.responseText);
+
+            // 设置 checkbox 样式
+            var nightModeCb = document.getElementById('night_mode_cb'),
+                cacheNewsCb = document.getElementById('cache_news_cb'),
+                clearCacheCb = document.getElementById('clear_cache_cb');
+
+            bb.checkbox.style(nightModeCb);
+            bb.checkbox.style(cacheNewsCb);
+            bb.checkbox.style(clearCacheCb);
+        },
+        initData: function() {
+            if(!this.isInitDate) {
+                this.isInitDate = true;
+                // 获取是否存在 settings 数据
+                if(window.localStorage.getItem(this.SETTINGS_OBJ_NAME) === null) {
+                    this.saveSettings();
+                }else {
+                    this.SETTINGS_OBJ = JSON.parse(window.localStorage.getItem(this.SETTINGS_OBJ_NAME));
+                }
+            }
+        },
+        initSettingItems: function() {
+            var nightModeCb = document.getElementById('night_mode_cb'),
+                cacheNewsCb = document.getElementById('cache_news_cb'),
+                clearCacheCb = document.getElementById('clear_cache_cb');
+
+            // 夜间模式复选框
+            this.getSetting('NIGHT_MODE') === '1' ? nightModeCb.setChecked(true) : nightModeCb.setChecked(false);
+
+            // 为开发完成的复选框
+            cacheNewsCb.disable();
+            clearCacheCb.disable();
+        },
+        initHandler: function() {
+            var that = this;
+            $('#night_mode_cb').on('change', function(e) {
+                that.SETTINGS_OBJ['NIGHT_MODE'] = $(e.currentTarget).get(0).checked ? '1' : '0';
+                that.saveSettings();
+                that.initNightMode();
+            });
+        },
+        initNightMode: function() {
+            var val = this.SETTINGS_OBJ['NIGHT_MODE'];
+
+            if(val === '1') {
+                if(!document.getElementById(this.LINK_ID)) {
+                    $('head').append($('<link rel="stylesheet" type="text/css" href="/css/night_mode.css" id="' + this.LINK_ID + '" />'));
+                }
+            }else {
+                var link = document.getElementById(this.LINK_ID);
+                if(link) {
+                    $(link).remove();
+                }
+            }
+        },
+        toggleNightMode: function() {
+            this.SETTINGS_OBJ['NIGHT_MODE'] === '1' ? this.SETTINGS_OBJ['NIGHT_MODE'] = '0' : this.SETTINGS_OBJ['NIGHT_MODE'] = '1';
+            this.initNightMode();
         }
     }
 };
