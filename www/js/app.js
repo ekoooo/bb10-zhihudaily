@@ -66,7 +66,7 @@ var App = {
 
         // 栏目/主题
         $(document).on('click', '.sections_themes li a', function(e) {
-            ShowScreen.sections_themes_list({
+            ShowScreen.sectionsThemesList({
                 "data-id": $(e.currentTarget).attr('data-id'),
                 "data-type": $('.sections_themes').attr('data-type')
             });
@@ -1046,7 +1046,7 @@ var KeyboardHelper = {
         var that = this;
 
         // TypeError: undefined is not an object (evaluating 'bb.actionOverflow.create')
-        window.setTimeout(function() {
+        // window.setTimeout(function() {
             blackberry.event.addEventListener("unhandledkeyinput", function (e) {
                 if(e.keyDown) {
                     var keycode = String.fromCharCode(e.keycode);
@@ -1055,7 +1055,7 @@ var KeyboardHelper = {
                     }
                 }
             });
-        }, 200);
+        // }, 200);
     },
     i: function() {
         // 主页
@@ -1151,7 +1151,7 @@ var ShowScreen = {
     hots: function() {
         bb.pushScreen('app.html', 'hots');
     },
-    sections_themes_list: function(params) {
+    sectionsThemesList: function(params) {
         bb.pushScreen('app.html', 'sections_themes_list', params);
     },
     changeDate: function(params) {
