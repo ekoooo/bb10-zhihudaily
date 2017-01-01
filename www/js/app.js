@@ -1268,6 +1268,7 @@ var BBUtil = {
         },
         toggleNightMode: function() {
             this.SETTINGS_OBJ['NIGHT_MODE'] === '1' ? this.SETTINGS_OBJ['NIGHT_MODE'] = '0' : this.SETTINGS_OBJ['NIGHT_MODE'] = '1';
+            this.saveSettings();
             this.initNightMode();
         }
     }
