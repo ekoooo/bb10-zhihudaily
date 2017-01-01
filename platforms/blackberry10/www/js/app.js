@@ -433,14 +433,26 @@ var ZhihuDaily = {
                 return;
             }
 
-            var item, tempLi, len = rs.length;
+            var item,
+                tempLi,
+                len = rs.length,
+                settingKey = 'themes' === type ? 'THEME_COLOR_MODE' : 'SECTION_COLOR_MODE',
+                settingVal = BBUtil.settings.getSetting(settingKey);
+
             for (var i = 0; i < len; i++) {
                 item = rs[i];
                 tempLi = $(liTpl);
 
-                tempLi.find('a').attr('data-id', item.id).css({
-                    background: 'url(' + item.thumbnail + ')'
-                });
+                if(settingVal === '1') {
+                    tempLi.find('a').attr('data-id', item.id).css({
+                        backgroundColor: BBUtil.randomColor()
+                    });
+                }else {
+                    tempLi.find('a').attr('data-id', item.id).css({
+                        background: 'url(' + item.thumbnail + ')'
+                    });
+                }
+
                 tempLi.find('a p').text(item.name);
                 tempLi.find('a div').text(item.description === '' ? item.name : item.description);
 
@@ -1148,6 +1160,10 @@ var ShowScreen = {
 };
 
 var BBUtil = {
+    THEME_COLOR: ['#5FD9CD', '#EAF786', '#FFB5A1', '#B8FFB8', '#B8F4FF', '#7AE8D8', '#FF9A9A', '#B7E89E', '#C795FF', '#81C2D6', '#8192D6', '#D9B3E6', '#DCF7A1', '#83FCD8'],
+    randomColor: function() {
+        return this.THEME_COLOR[Math.floor(Math.random() * this.THEME_COLOR.length)];
+    },
     showConnectionDialog: function() {
         this.alert("无法连接网络 请检查您的数据连接并重试", "Network Connection Required");
     },
@@ -1179,7 +1195,9 @@ var BBUtil = {
         SETTINGS_OBJ_NAME: "SETTINGS",
         LINK_ID: "night_mode_css",
         SETTINGS_OBJ: {
-            "NIGHT_MODE": "0"
+            "NIGHT_MODE": "0",
+            "SECTION_COLOR_MODE": "1",
+            "THEME_COLOR_MODE": "0"
         },
         saveSettings: function() {
             window.localStorage.setItem(this.SETTINGS_OBJ_NAME, JSON.stringify(this.SETTINGS_OBJ));
@@ -1194,7 +1212,6 @@ var BBUtil = {
         },
         init: function() {
             this.initPanel(); // 打开弹窗界面
-            // this.initData(); // 初始化设置数据到内存中
             this.initSettingItems(); // 初始化设置选项
             this.initHandler(); // 事件监听
         },
@@ -1213,13 +1230,10 @@ var BBUtil = {
             contentBox.html(xhr.responseText);
 
             // 设置 checkbox 样式
-            var nightModeCb = document.getElementById('night_mode_cb'),
-                cacheNewsCb = document.getElementById('cache_news_cb'),
-                clearCacheCb = document.getElementById('clear_cache_cb');
-
-            bb.checkbox.style(nightModeCb);
-            bb.checkbox.style(cacheNewsCb);
-            bb.checkbox.style(clearCacheCb);
+            var cbs = document.querySelectorAll('.settings_box input[type="checkbox"]');
+            for (var i = 0, len = cbs.length; i < len; i++) {
+                bb.checkbox.style(cbs[i]);
+            }
         },
         initData: function() {
             if(!this.isInitDate) {
@@ -1234,11 +1248,15 @@ var BBUtil = {
         },
         initSettingItems: function() {
             var nightModeCb = document.getElementById('night_mode_cb'),
+                sectionColorModeCb = document.getElementById('section_color_mode_cb'),
+                themeColorModeCb = document.getElementById('theme_color_mode_cb'),
                 cacheNewsCb = document.getElementById('cache_news_cb'),
                 clearCacheCb = document.getElementById('clear_cache_cb');
 
             // 夜间模式复选框
             this.getSetting('NIGHT_MODE') === '1' ? nightModeCb.setChecked(true) : nightModeCb.setChecked(false);
+            this.getSetting('SECTION_COLOR_MODE') === '1' ? sectionColorModeCb.setChecked(true) : sectionColorModeCb.setChecked(false);
+            this.getSetting('THEME_COLOR_MODE') === '1' ? themeColorModeCb.setChecked(true) : themeColorModeCb.setChecked(false);
 
             // 为开发完成的复选框
             cacheNewsCb.disable();
@@ -1246,10 +1264,26 @@ var BBUtil = {
         },
         initHandler: function() {
             var that = this;
-            $('#night_mode_cb').on('change', function(e) {
-                that.SETTINGS_OBJ['NIGHT_MODE'] = $(e.currentTarget).get(0).checked ? '1' : '0';
+            $('#night_mode_cb, #section_color_mode_cb, #theme_color_mode_cb').on('change', function(e) {
+                var current = $(e.currentTarget),
+                    crt = current.get(0),
+                    id = current.attr('id');
+
+                switch (id) {
+                    case 'night_mode_cb':
+                        that.SETTINGS_OBJ['NIGHT_MODE'] = crt.checked ? '1' : '0';
+                        that.initNightMode();
+                        break;
+                    case 'section_color_mode_cb':
+                        that.SETTINGS_OBJ['SECTION_COLOR_MODE'] = crt.checked ? '1' : '0';
+                        break;
+                    case 'theme_color_mode_cb':
+                        that.SETTINGS_OBJ['THEME_COLOR_MODE'] = crt.checked ? '1' : '0';
+                        break;
+                    default:
+                        break;
+                }
                 that.saveSettings();
-                that.initNightMode();
             });
         },
         initNightMode: function() {
