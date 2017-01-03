@@ -38,7 +38,7 @@ var App = {
                     break;
             }
 
-            App.clearActionBar(obj.id);
+            ActionBarMgr.clearActionBar(obj.id);
         });
 
         // 主页按钮点击监听 (dom 中直接添加 onclick 有问题?)
@@ -95,19 +95,6 @@ var App = {
         }
 
         bb.screens = bb.screens.slice(-1);
-    },
-    clearActionBar: function(id) {
-        var dateActionBar = document.getElementById('action_bar_date');
-        if(!dateActionBar) {
-            return;
-        }
-
-        // 只有栏目,主页,历史消息页可以查看历史消息, 否则隐藏日期 actionBar
-        if(id === 'latest' || id === 'change_date' || $('.stories').attr('data-type') === 'sections') {
-            dateActionBar.show();
-        }else {
-            dateActionBar.hide();
-        }
     }
 };
 
@@ -1134,6 +1121,19 @@ var ActionBarMgr = {
                 break;
             default:
                 break;
+        }
+    },
+    clearActionBar: function(id) {
+        var dateActionBar = document.getElementById('action_bar_date');
+        if(!dateActionBar) {
+            return;
+        }
+
+        // 只有栏目,主页,历史消息页可以查看历史消息, 否则隐藏日期 actionBar
+        if(id === 'latest' || id === 'change_date' || $('.stories').attr('data-type') === 'sections') {
+            dateActionBar.show();
+        }else {
+            dateActionBar.hide();
         }
     }
 };
