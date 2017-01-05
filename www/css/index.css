@@ -31,6 +31,35 @@ body {
     padding: 0px;
 }
 
+/*
+bb.device.is1024x600
+bb.device.is1280x768
+bb.device.is720x720
+bb.device.is1280x720
+bb.device.is1440x1440
+
+max-width: 1440px
+max-width: 768px
+max-width: 720px
+max-width: 600px
+*/
+@media only screen and (width: 1440px) {
+    html, body{ font-size: 20px; }
+}
+
+@media only screen and (width: 768px) {
+    html, body{ font-size: 12.9537px; }
+}
+
+@media only screen and (width: 720px) {
+    html, body{ font-size: 12.9537px; }
+}
+
+@media only screen and (width: 600px) {
+    html, body{ font-size: 11.3311px; }
+}
+
+/*
 @media only screen and (max-width: 1920px) and (min-width: 720px) { html, body{ font-size: 20px }.viewport{max-width: 720px;}}
 @media only screen and (max-width: 719px) and (min-width:690px) { html, body{ font-size: 19.4444px; }.viewport{max-width: 700px;}}
 @media only screen and (max-width: 689px) and (min-width:660px) { html, body{ font-size: 18.6331px; }.viewport{max-width: 689px;}}
@@ -46,6 +75,7 @@ body {
 @media only screen and (max-width: 389px) and (min-width:360px) { html, body{ font-size: 10.5189px; }.viewport{max-width: 389px;}}
 @media only screen and (max-width: 359px) and (min-width:330px) { html, body{ font-size: 9.7067px; }.viewport{max-width: 359px;}}
 @media only screen and (max-width: 329px) and (min-width:250px) { html, body{ font-size: 8.8955px; }.viewport{min-width: 320px;}}
+*/
 
 /*主页 start*/
 .stories_box {
