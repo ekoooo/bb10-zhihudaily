@@ -1,0 +1,33 @@
+.mask .meta,
+.mask .content,
+.mask .view-more a,
+.mask .question-title,
+.mask .headline-background .heading,
+.mask .comment-item,
+.mask .comment-item a,
+.mask .headline-title,
+.mask .headline .meta a,
+.mask .headline .meta a:hover,
+.mask .large .meta,
+.mask .large .content,
+.mask .answer h1,
+.mask .answer h2,
+.mask .answer h3,
+.mask .answer h4,
+.mask .answer h5 {
+    font-size: 2.75rem !important;
+}
+
+.mask .footer,
+.mask .comment-meta .vote {
+    font-size: 2.5rem !important;
+}
+
+.mask .headline .heading-content {
+    font-size: 2.25rem !important;
+}
+
+.mask .view-more a {
+    height: 3.75rem !important;
+    line-height: 3.75rem !important;
+}

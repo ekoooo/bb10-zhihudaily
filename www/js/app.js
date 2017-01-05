@@ -1194,10 +1194,12 @@ var BBUtil = {
         DOT_SETTINGS_CLASS: ".settings_mask",
         SETTINGS_OBJ_NAME: "SETTINGS",
         LINK_ID: "night_mode_css",
+        FONT_SIZE_LINK_ID: "read_page_fsz_css",
         SETTINGS_OBJ: {
             "NIGHT_MODE": "0",
             "SECTION_COLOR_MODE": "1",
-            "THEME_COLOR_MODE": "0"
+            "THEME_COLOR_MODE": "0",
+            "READ_PAGE_FONT_SIZE": "normal"
         },
         saveSettings: function() {
             window.localStorage.setItem(this.SETTINGS_OBJ_NAME, JSON.stringify(this.SETTINGS_OBJ));
@@ -1209,6 +1211,7 @@ var BBUtil = {
             this.initData();
             // 夜间模式
             this.initNightMode();
+            this.initReadPageFsz();
         },
         init: function() {
             this.initPanel(); // 打开弹窗界面
@@ -1234,6 +1237,9 @@ var BBUtil = {
             for (var i = 0, len = cbs.length; i < len; i++) {
                 bb.checkbox.style(cbs[i]);
             }
+
+            // 设置字体大小调节 radio
+            bb.radio.apply(document.querySelectorAll('[name="read_page_fontsize_rd"]'));
         },
         initData: function() {
             if(!this.isInitDate) {
@@ -1242,7 +1248,10 @@ var BBUtil = {
                 if(window.localStorage.getItem(this.SETTINGS_OBJ_NAME) === null) {
                     this.saveSettings();
                 }else {
-                    this.SETTINGS_OBJ = JSON.parse(window.localStorage.getItem(this.SETTINGS_OBJ_NAME));
+                    // 如果有以前的设置存在, 则把缓存的数据和初始化的数据整合.
+                    this.SETTINGS_OBJ = $.extend({}, this.SETTINGS_OBJ, JSON.parse(window.localStorage.getItem(this.SETTINGS_OBJ_NAME)));
+                    // 重新保存到缓存中, 避免更新加入设置字段未存储情况
+                    this.saveSettings();
                 }
             }
         },
@@ -1258,12 +1267,16 @@ var BBUtil = {
             this.getSetting('SECTION_COLOR_MODE') === '1' ? sectionColorModeCb.setChecked(true) : sectionColorModeCb.setChecked(false);
             this.getSetting('THEME_COLOR_MODE') === '1' ? themeColorModeCb.setChecked(true) : themeColorModeCb.setChecked(false);
 
+            // 阅读 page 字体
+            document.querySelector('#fsz_' + this.getSetting('READ_PAGE_FONT_SIZE')).setChecked();
+
             // 为开发完成的复选框
             cacheNewsCb.disable();
             clearCacheCb.disable();
         },
         initHandler: function() {
             var that = this;
+
             $('#night_mode_cb, #section_color_mode_cb, #theme_color_mode_cb').on('change', function(e) {
                 var current = $(e.currentTarget),
                     crt = current.get(0),
@@ -1285,6 +1298,16 @@ var BBUtil = {
                 }
                 that.saveSettings();
             });
+
+            // fontsize radio btn
+            $('[name="read_page_fontsize_rd"]').on('change', function(e) {
+                var checked = $('[name="read_page_fontsize_rd"]:checked');
+                if(typeof checked !== 'undefined') { // 触发两次?
+                    that.SETTINGS_OBJ['READ_PAGE_FONT_SIZE'] = checked.attr('value');
+                    that.saveSettings();
+                    that.initReadPageFsz();
+                }
+            });
         },
         initNightMode: function() {
             var val = this.SETTINGS_OBJ['NIGHT_MODE'];
@@ -1304,6 +1327,20 @@ var BBUtil = {
             this.SETTINGS_OBJ['NIGHT_MODE'] === '1' ? this.SETTINGS_OBJ['NIGHT_MODE'] = '0' : this.SETTINGS_OBJ['NIGHT_MODE'] = '1';
             this.saveSettings();
             this.initNightMode();
+        },
+        initReadPageFsz: function() {
+            var val = this.SETTINGS_OBJ['READ_PAGE_FONT_SIZE'],
+                css = document.getElementById(this.FONT_SIZE_LINK_ID);
+
+            if(css) {
+                $(css).remove();
+            }
+
+            if(val === 'large') {
+                $('head').append($('<link rel="stylesheet" type="text/css" href="/css/news_large_font.css" id="' + this.FONT_SIZE_LINK_ID + '" />'));
+            }else if(val === 'clarge') {
+                $('head').append($('<link rel="stylesheet" type="text/css" href="/css/news_clarge_font.css" id="' + this.FONT_SIZE_LINK_ID + '" />'));
+            }
         }
     }
 };

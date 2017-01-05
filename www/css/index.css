@@ -641,10 +641,14 @@ div[data-bb-type="screen"] img {
     color: blue;
 }
 
-.settings_box .bb-checkbox-target {
+.settings_box .bb-checkbox-target,
+.settings_box div[class^="bb-radio-container-"] {
     display: inline-block;
     vertical-align: middle;
 }
+
+
+
 /*settings end*/
 @media only screen and (max-width: 1024px) {
     .stories_list li {
