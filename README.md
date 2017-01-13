@@ -41,15 +41,26 @@
 纯属个人兴趣开发. 如果有什么建议可发送至我邮箱: 954408050@qq.com
 
 # 截图
-![image](https://raw.githubusercontent.com/ekoooo/bb10-zhihudaily/master/screenshots/1.png)
+![image](https://raw.githubusercontent.com/ekoooo/bb10-zhihudaily/master/screenshots/01.png)
+
 ![image](https://raw.githubusercontent.com/ekoooo/bb10-zhihudaily/master/screenshots/2.png)
+
 ![image](https://raw.githubusercontent.com/ekoooo/bb10-zhihudaily/master/screenshots/3.png)
+
 ![image](https://raw.githubusercontent.com/ekoooo/bb10-zhihudaily/master/screenshots/4.png)
+
 ![image](https://raw.githubusercontent.com/ekoooo/bb10-zhihudaily/master/screenshots/5.png)
+
 ![image](https://raw.githubusercontent.com/ekoooo/bb10-zhihudaily/master/screenshots/6.png)
+
 ![image](https://raw.githubusercontent.com/ekoooo/bb10-zhihudaily/master/screenshots/7.png)
+
 ![image](https://raw.githubusercontent.com/ekoooo/bb10-zhihudaily/master/screenshots/8.png)
+
 ![image](https://raw.githubusercontent.com/ekoooo/bb10-zhihudaily/master/screenshots/9.png)
+
 ![image](https://raw.githubusercontent.com/ekoooo/bb10-zhihudaily/master/screenshots/10.png)
+
 ![image](https://raw.githubusercontent.com/ekoooo/bb10-zhihudaily/master/screenshots/11.png)
+
 ![image](https://raw.githubusercontent.com/ekoooo/bb10-zhihudaily/master/screenshots/12.png)
